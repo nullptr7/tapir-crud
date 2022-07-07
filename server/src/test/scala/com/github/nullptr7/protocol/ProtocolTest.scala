@@ -102,5 +102,4 @@ class ProtocolTest extends AsyncFlatSpec with Matchers {
       // then
       response.unsafeRunSync().body shouldBe Left("Unauthorized")
   }
-
 }
