@@ -15,7 +15,7 @@ trait Contracts[F[_]] {
     endpoint
       .get
       .in("employees" / "get" / "all")
-      // .in(query[String]("X-AuthMode"))
+      .in(header[String]("X-AuthMode"))
       .out(jsonBody[List[Employee]])
       .errorOut(stringBody)
 
@@ -23,7 +23,7 @@ trait Contracts[F[_]] {
     endpoint
       .get
       .in("employees" / "get" / "employee")
-      .in(query[String]("X-AuthMode"))
+      .in(header[String]("X-AuthMode"))
       .in(query[String]("id"))
       .out(jsonBody[Option[Employee]])
       .errorOut(stringBody)
