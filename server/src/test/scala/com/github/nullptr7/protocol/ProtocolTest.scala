@@ -78,4 +78,29 @@ class ProtocolTest extends AsyncFlatSpec with Matchers {
 
   }
 
+  it should "return none when the authMode is admin but id is not available from the list" in {
+      
+      // when
+      val response = basicRequest
+        .get(uri"http://localhost:8080/employees/get/employee?id=9")
+        .header("X-AuthMode", "admin")
+        .response(asJson[Option[Employee]])
+        .send(employeeByIdEndpointStub)
+  
+      // then
+      response.unsafeRunSync().body shouldBe Right(None)
+  }
+
+  it should "return unauthorized when authMode is non-admin" in {
+      
+      // when
+      val response = basicRequest
+        .get(uri"http://localhost:8080/employees/get/employee?id=1")
+        .header("X-AuthMode", "non-admin")
+        .send(employeeByIdEndpointStub)
+  
+      // then
+      response.unsafeRunSync().body shouldBe Left("Unauthorized")
+  }
+
 }
