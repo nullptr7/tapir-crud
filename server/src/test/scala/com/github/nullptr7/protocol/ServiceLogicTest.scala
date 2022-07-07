@@ -16,7 +16,7 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import data._
 import models.codecs._
 
-class ProtocolTest extends AsyncFlatSpec with Matchers {
+class ServiceLogicTest extends AsyncFlatSpec with Matchers {
 
   private lazy val serviceLogic: ServiceLogic[IO] = new ServiceLogic[IO]
 
@@ -53,11 +53,22 @@ class ProtocolTest extends AsyncFlatSpec with Matchers {
     // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
-      .header("X-AuthMode", "non-admin")
+      .header("X-AuthMode", "nonadmin")
       .send(allEmployeeEndpointStub)
 
     // then
     response.unsafeRunSync().body shouldBe Left("Unauthorized")
+  }
+
+  it should "fail when header format is not correct" in {
+    // when
+    val response = basicRequest
+      .get(uri"http://localhost:8080/employees/get/all")
+      .header("X-AuthMode", "xxx")
+      .send(allEmployeeEndpointStub)
+
+    // then
+    response.unsafeRunSync().body shouldBe Left("Invalid value for: header X-AuthMode (missing)")
   }
 
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
@@ -79,27 +90,38 @@ class ProtocolTest extends AsyncFlatSpec with Matchers {
   }
 
   it should "return none when the authMode is admin but id is not available from the list" in {
-      
-      // when
-      val response = basicRequest
-        .get(uri"http://localhost:8080/employees/get/employee?id=9")
-        .header("X-AuthMode", "admin")
-        .response(asJson[Option[Employee]])
-        .send(employeeByIdEndpointStub)
-  
-      // then
-      response.unsafeRunSync().body shouldBe Right(None)
+
+    // when
+    val response = basicRequest
+      .get(uri"http://localhost:8080/employees/get/employee?id=9")
+      .header("X-AuthMode", "admin")
+      .response(asJson[Option[Employee]])
+      .send(employeeByIdEndpointStub)
+
+    // then
+    response.unsafeRunSync().body shouldBe Right(None)
   }
 
   it should "return unauthorized when authMode is non-admin" in {
-      
-      // when
-      val response = basicRequest
-        .get(uri"http://localhost:8080/employees/get/employee?id=1")
-        .header("X-AuthMode", "non-admin")
-        .send(employeeByIdEndpointStub)
-  
-      // then
-      response.unsafeRunSync().body shouldBe Left("Unauthorized")
+
+    // when
+    val response = basicRequest
+      .get(uri"http://localhost:8080/employees/get/employee?id=1")
+      .header("X-AuthMode", "nonadmin")
+      .send(employeeByIdEndpointStub)
+
+    // then
+    response.unsafeRunSync().body shouldBe Left("Unauthorized")
+  }
+
+  it should "fail when header format is not correct" in {
+    // when
+    val response = basicRequest
+      .get(uri"http://localhost:8080/employees/get/employee?id=1")
+      .header("X-AuthMode", "xxx")
+      .send(employeeByIdEndpointStub)
+
+    // then
+    response.unsafeRunSync().body shouldBe Left("Invalid value for: header X-AuthMode (missing)")
   }
 }
