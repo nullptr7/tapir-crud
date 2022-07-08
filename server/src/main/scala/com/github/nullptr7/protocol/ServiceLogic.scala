@@ -3,7 +3,7 @@ package protocol
 
 import cats.effect.Async
 
-class ServiceLogic[F[_]: Async] extends Contracts[F] {
+class ServiceLogic[F[_]: Async] extends EmployeeContracts[F] with AddressContracts[F] {
 
   import data._
   import models._
@@ -18,6 +18,20 @@ class ServiceLogic[F[_]: Async] extends Contracts[F] {
     authMode match {
       case Admin    => Right(allEmployees.find(_.id == id.toLong)).withLeft[String].pure[F]
       case NonAdmin => Left("Unauthorized").withRight[Option[Employee]].pure[F]
+    }
+  }
+
+  private[protocol] lazy val addressByIdEndpoint = addressById.serverLogic[F] { case (authMode, id) =>
+    authMode match {
+      case Admin    => Right(allAddresses.find(_.id == id.toLong)).withLeft[String].pure[F]
+      case NonAdmin => Left("Unauthorized").withRight[Option[Address]].pure[F]
+    }
+  }
+
+  private[protocol] lazy val addressByZipEndpoint = addressByPincode.serverLogic[F] { case (authMode, pincode) =>
+    authMode match {
+      case Admin    => Right(allAddresses.find(_.zip == pincode)).withLeft[String].pure[F]
+      case NonAdmin => Left("Unauthorized").withRight[Option[Address]].pure[F]
     }
   }
 
