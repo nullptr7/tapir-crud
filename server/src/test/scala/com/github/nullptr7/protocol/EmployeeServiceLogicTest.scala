@@ -4,8 +4,6 @@ package protocol
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe.syntax._
-import org.scalatest.flatspec.AsyncFlatSpec
-import org.scalatest.matchers.should.Matchers
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
@@ -16,9 +14,7 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import data._
 import models.codecs._
 
-class ServiceLogicTest extends AsyncFlatSpec with Matchers {
-
-  private lazy val serviceLogic: ServiceLogic[IO] = new ServiceLogic[IO]
+class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
 
   import serviceLogic._
 

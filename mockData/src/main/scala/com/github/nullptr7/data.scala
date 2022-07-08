@@ -21,4 +21,21 @@ package object data {
     )
   )
 
+  val allAddresses: List[Address] = List(
+    Address(
+      id     = 123,
+      street = "Main Street",
+      city   = "Anytown",
+      state  = "CA",
+      zip    = "12345"
+    ),
+    Address(
+      id     = 456,
+      street = "Main Street",
+      city   = "Anytown",
+      state  = "CA",
+      zip    = "12345"
+    )
+  )
+
 }
