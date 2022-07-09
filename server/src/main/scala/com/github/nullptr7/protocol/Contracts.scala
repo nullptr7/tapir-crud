@@ -12,4 +12,3 @@ trait Contracts[F[_]] {
 
   protected[protocol] val make: List[ServerEndpoint[Any, F]]
 }
-F
