@@ -11,22 +11,23 @@ import models.codecs._
 trait EmployeeContracts[F[_]] extends Contracts[F] {
 
   import AuthMode._
+  import exceptions._
 
-  protected[protocol] lazy val allEmployeesEP: Endpoint[Unit, AuthMode, String, List[Employee], Any] =
+  protected[protocol] lazy val allEmployeesEP: Endpoint[Unit, AuthMode, ErrorResponse, List[Employee], Any] =
     base
       .get
       .in("get" / "all")
       .in(header[AuthMode]("X-AuthMode"))
       .out(jsonBody[List[Employee]])
-      .errorOut(stringBody)
+      .errorOut(jsonBody[ErrorResponse])
 
-  protected[protocol] lazy val employeeEP: Endpoint[Unit, (AuthMode, String), String, Option[Employee], Any] =
+  protected[protocol] lazy val employeeEP: Endpoint[Unit, (AuthMode, String), ErrorResponse, Option[Employee], Any] =
     base
       .get
       .in("get" / "employee")
       .in(header[AuthMode]("X-AuthMode"))
       .in(query[String]("id"))
       .out(jsonBody[Option[Employee]])
-      .errorOut(stringBody)
+      .errorOut(jsonBody[ErrorResponse])
 
 }

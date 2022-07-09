@@ -13,6 +13,7 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 
 import data._
 import models.codecs._
+import com.github.nullptr7.exceptions.ErrorResponse
 
 class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
 
@@ -53,7 +54,7 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
       .send(allEmployeeEndpointStub)
 
     // then
-    response.unsafeRunSync().body shouldBe Left("Unauthorized")
+    response.unsafeRunSync().body shouldBe Left(ErrorResponse(401, "Not allowed").asJson.noSpaces)
   }
 
   it should "fail when header format is not correct" in {
@@ -64,7 +65,7 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
       .send(allEmployeeEndpointStub)
 
     // then
-    response.unsafeRunSync().body shouldBe Left("Invalid value for: header X-AuthMode (missing)")
+    response.unsafeRunSync().body shouldBe Left(ErrorResponse(400, "Invalid Mode").asJson.noSpaces)
   }
 
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
@@ -107,7 +108,7 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
       .send(employeeByIdEndpointStub)
 
     // then
-    response.unsafeRunSync().body shouldBe Left("Unauthorized")
+    response.unsafeRunSync().body shouldBe Left(ErrorResponse(401, "Not allowed").asJson.noSpaces)
   }
 
   it should "fail when header format is not correct" in {
@@ -118,6 +119,6 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
       .send(employeeByIdEndpointStub)
 
     // then
-    response.unsafeRunSync().body shouldBe Left("Invalid value for: header X-AuthMode (missing)")
+    response.unsafeRunSync().body shouldBe Left(ErrorResponse(400, "Invalid Mode").asJson.noSpaces)
   }
 }
