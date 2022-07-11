@@ -7,6 +7,7 @@ import sttp.tapir.json.circe._
 
 import models._
 import models.codecs._
+import exceptions.ErrorResponse._
 
 trait AddressContracts[F[_]] extends Contracts[F] {
 
@@ -16,7 +17,7 @@ trait AddressContracts[F[_]] extends Contracts[F] {
       .in("address")
       .in(header[AuthMode]("X-AuthMode"))
       .out(jsonBody[Option[Address]])
-      .errorOut(stringBody)
+      .errorOut(jsonBody[ServiceResponseException])
 
   lazy val addressById = addressBy.in(query[String]("id"))
 

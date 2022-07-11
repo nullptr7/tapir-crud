@@ -3,7 +3,9 @@ package protocol
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import io.circe.parser._
 import io.circe.syntax._
+import org.scalatest.Inside
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
@@ -13,9 +15,9 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 
 import data._
 import models.codecs._
-import com.github.nullptr7.exceptions.ErrorResponse
+import exceptions.ErrorResponse._
 
-class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
+class EmployeeServiceLogicTest extends ServiceLogicTestHelper with Inside {
 
   import serviceLogic._
 
@@ -35,37 +37,45 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
 
   "All Employee Endpoint with authMode header" should "work when admin" in {
 
-    // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "admin")
       .send(allEmployeeEndpointStub)
 
-    // then
     response.unsafeRunSync().body shouldBe Right(allEmployees.asJson.noSpaces)
   }
 
   it should "fail when not admin" in {
 
-    // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "nonadmin")
       .send(allEmployeeEndpointStub)
 
-    // then
-    response.unsafeRunSync().body shouldBe Left(ErrorResponse(401, "Not allowed").asJson.noSpaces)
+    val errorBody = response.unsafeRunSync().body
+
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
+      }
+    }
+
   }
 
   it should "fail when header format is not correct" in {
-    // when
+
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "xxx")
       .send(allEmployeeEndpointStub)
 
-    // then
-    response.unsafeRunSync().body shouldBe Left(ErrorResponse(400, "Invalid Mode").asJson.noSpaces)
+    val errorBody = response.unsafeRunSync().body
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe InvalidAuthException
+      }
+    }
+
   }
 
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
@@ -101,24 +111,32 @@ class EmployeeServiceLogicTest extends ServiceLogicTestHelper {
 
   it should "return unauthorized when authMode is non-admin" in {
 
-    // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/employee?id=1")
       .header("X-AuthMode", "nonadmin")
       .send(employeeByIdEndpointStub)
 
-    // then
-    response.unsafeRunSync().body shouldBe Left(ErrorResponse(401, "Not allowed").asJson.noSpaces)
+    val errorBody = response.unsafeRunSync().body
+
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
+      }
+    }
   }
 
   it should "fail when header format is not correct" in {
-    // when
+
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/employee?id=1")
       .header("X-AuthMode", "xxx")
       .send(employeeByIdEndpointStub)
 
-    // then
-    response.unsafeRunSync().body shouldBe Left(ErrorResponse(400, "Invalid Mode").asJson.noSpaces)
+    val errorBody = response.unsafeRunSync().body
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe InvalidAuthException
+      }
+    }
   }
 }

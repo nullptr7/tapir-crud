@@ -32,6 +32,7 @@ lazy val server =
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.0.0",
         "org.http4s" %% "http4s-blaze-server" % "0.23.12",
+        "io.circe" %% "circe-generic-extras" % "0.14.1",
         "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % "1.0.0" % Test,
         "org.scalatest" %% "scalatest" % "3.2.12" % Test,
         "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.6.2" % Test,

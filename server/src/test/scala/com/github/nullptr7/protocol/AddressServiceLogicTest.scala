@@ -3,17 +3,20 @@ package protocol
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import org.scalatest.Inside
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
 import sttp.client3.testing.SttpBackendStub
 import sttp.monad.MonadAsyncError
 import sttp.tapir.server.stub.TapirStubInterpreter
+import io.circe.parser._
 
 import models.codecs.addressCodec
 import models.Address
+import exceptions.ErrorResponse._
 
-class AddressServiceLogicTest extends ServiceLogicTestHelper {
+class AddressServiceLogicTest extends ServiceLogicTestHelper with Inside {
 
   import serviceLogic._
 
@@ -68,7 +71,13 @@ class AddressServiceLogicTest extends ServiceLogicTestHelper {
       .header("X-AuthMode", "nonadmin")
       .send(addressByIdEndpointStub)
 
-    response.unsafeRunSync().body shouldBe Left("Unauthorized")
+    val errorBody = response.unsafeRunSync().body
+
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
+      }
+    }
   }
 
   "Address Service By Zip endpoint" should "work whenadmin and valid zip" in {
@@ -109,6 +118,11 @@ class AddressServiceLogicTest extends ServiceLogicTestHelper {
       .header("X-AuthMode", "nonadmin")
       .send(addressByZipEndpointStub)
 
-    response.unsafeRunSync().body shouldBe Left("Unauthorized")
+    val errorBody = response.unsafeRunSync().body
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
+      }
+    }
   }
 }
