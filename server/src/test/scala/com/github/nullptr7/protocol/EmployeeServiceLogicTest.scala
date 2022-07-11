@@ -5,7 +5,6 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe.parser._
 import io.circe.syntax._
-import org.scalatest.Inside
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
@@ -16,8 +15,9 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import data._
 import models.codecs._
 import exceptions.ErrorResponse._
+import common.BaseTest
 
-class EmployeeServiceLogicTest extends ServiceLogicTestHelper with Inside {
+class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   import serviceLogic._
 

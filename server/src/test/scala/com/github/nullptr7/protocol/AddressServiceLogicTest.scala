@@ -3,7 +3,6 @@ package protocol
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.scalatest.Inside
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
@@ -15,8 +14,9 @@ import io.circe.parser._
 import models.codecs.addressCodec
 import models.Address
 import exceptions.ErrorResponse._
+import common.BaseTest
 
-class AddressServiceLogicTest extends ServiceLogicTestHelper with Inside {
+class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   import serviceLogic._
 
