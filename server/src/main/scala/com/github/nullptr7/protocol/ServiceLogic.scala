@@ -26,7 +26,7 @@ class ServiceLogic[F[_]: Async] extends EmployeeContracts[F] with AddressContrac
 
   override val make = List(allEmployeeEndpoint, empByIdEndpoint)
 
-  private def handle[O](authMode: AuthMode)(fo: F[O]): F[O] = authMode match {
+  private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] = authMode match {
     case Admin       => fo
     case NonAdmin    => Async[F].raiseError[O](UnauthorizedAuthException)
     case InvalidMode => Async[F].raiseError[O](InvalidAuthException)
