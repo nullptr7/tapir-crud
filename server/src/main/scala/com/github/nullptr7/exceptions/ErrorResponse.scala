@@ -18,8 +18,7 @@ object ErrorResponse {
 
   final object InvalidAuthException      extends ServiceResponseException(400, "Invalid Authentication Provided")
   final object UnauthorizedAuthException extends ServiceResponseException(401, "Unauthorized!")
-
-  final object GenericException extends ServiceResponseException(500, "Internal Server Error")
+  final object GenericException          extends ServiceResponseException(500, "Internal Server Error")
 
   implicit val serviceRespExCodec: Codec.AsObject[ServiceResponseException] = new Codec.AsObject[ServiceResponseException] {
 
