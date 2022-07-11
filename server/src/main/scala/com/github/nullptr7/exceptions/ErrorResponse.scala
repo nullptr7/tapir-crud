@@ -9,10 +9,6 @@ import io.circe.generic.semiauto.deriveCodec
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 
-case class ErrorResponseV2(code: Int, msg: String) extends Exception {
-  override def getMessage: String = s"Service failed with status code $code and exception $msg."
-}
-
 case class ErrorResponse(serviceException: String) extends Exception
 
 object ErrorResponse {
