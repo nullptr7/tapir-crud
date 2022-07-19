@@ -1,11 +1,12 @@
 package com.github.nullptr7
 package protocol
 
-import models._
-import models.codecs._
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
+
+import models._
+import models.codecs._
 
 trait EmployeeContracts[F[_]] extends Contracts[F] {
 

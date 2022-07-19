@@ -11,16 +11,22 @@ import exceptions.ErrorResponse._
 
 trait AddressContracts[F[_]] extends Contracts[F] {
 
-  final private[this] def addressBy =
+  lazy val addressById =
     base
       .get
       .in("address")
       .in(header[AuthMode]("X-AuthMode"))
+      .in(query[String]("id"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
 
-  lazy val addressById = addressBy.in(query[String]("id"))
-
-  lazy val addressByPincode = addressBy.in(query[String]("pincode"))
+  lazy val addressByPincode =
+    base
+      .get
+      .in("address")
+      .in(header[AuthMode]("X-AuthMode"))
+      .in(query[String]("pincode"))
+      .out(jsonBody[Option[Address]])
+      .errorOut(jsonBody[ServiceResponseException])
 
 }

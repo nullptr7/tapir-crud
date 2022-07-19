@@ -3,31 +3,36 @@ package protocol
 
 import cats.effect.Async
 
-import exceptions.ErrorResponse.{InvalidAuthException, UnauthorizedAuthException}
+import exceptions.ErrorResponse._
+import storage.{AddressRepository, EmployeeRepository}
 
-class ServiceLogic[F[_]: Async] extends EmployeeContracts[F] with AddressContracts[F] {
+class ServiceLogic[F[_]: Async](
+  private[protocol] val employeeRepo: EmployeeRepository[F],
+  private[protocol] val addressRepo:  AddressRepository[F]
+) extends EmployeeContracts[F]
+  with AddressContracts[F] {
 
-  import data._
   import cats.implicits._
 
-  private[protocol] lazy val allEmployeeEndpoint = allEmployeesEP.serverLogicRecoverErrors[F](handle(_)(allEmployees.pure[F]))
+  private[protocol] lazy val allEmployeeEndpoint: ServerEndpointF =
+    allEmployeesEP.serverLogicRecoverErrors[F](handle(_)(employeeRepo.findAllEmployees))
 
-  private[protocol] lazy val empByIdEndpoint = employeeEP.serverLogicRecoverErrors[F] { case (authMode, id) =>
-    handle(authMode)(allEmployees.find(_.id == id.toLong).pure[F])
+  private[protocol] lazy val empByIdEndpoint: ServerEndpointF = employeeEP.serverLogicRecoverErrors[F] { case (authMode, id) =>
+    handle(authMode)(employeeRepo.findById(id.toLong))
   }
 
-  private[protocol] lazy val addressByIdEndpoint = addressById.serverLogicRecoverErrors[F] { case (authMode, id) =>
-    handle(authMode)(allAddresses.find(_.id == id.toLong).pure[F])
+  private[protocol] lazy val addressByIdEndpoint: ServerEndpointF = addressById.serverLogicRecoverErrors[F] { case (authMode, id) =>
+    handle(authMode)(addressRepo.findAddressById(id.toLong))
   }
 
-  private[protocol] lazy val addressByZipEndpoint = addressByPincode.serverLogicRecoverErrors[F] { case (authMode, pincode) =>
-    handle(authMode)(allAddresses.find(_.zip == pincode).pure[F])
+  private[protocol] lazy val addressByZipEndpoint: ServerEndpointF = addressByPincode.serverLogicRecoverErrors[F] { case (authMode, pincode) =>
+    handle(authMode)(addressRepo.findAddressByZip(pincode))
   }
 
-  override val make = List(allEmployeeEndpoint, empByIdEndpoint)
+  override val make: F[List[ServerEndpointF]] = List(allEmployeeEndpoint, empByIdEndpoint, addressByIdEndpoint, addressByZipEndpoint).pure[F]
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] = authMode match {
-    case Admin       => fo
+    case Admin       => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
     case NonAdmin    => Async[F].raiseError[O](UnauthorizedAuthException)
     case InvalidMode => Async[F].raiseError[O](InvalidAuthException)
   }

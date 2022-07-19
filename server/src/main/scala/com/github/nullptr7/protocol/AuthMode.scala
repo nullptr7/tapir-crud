@@ -1,9 +1,7 @@
 package com.github.nullptr7
 package protocol
 
-import sttp.tapir._
-
-import sttp.tapir.DecodeResult
+import sttp.tapir.{DecodeResult, _}
 
 sealed trait AuthMode
 

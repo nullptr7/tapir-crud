@@ -1,0 +1,19 @@
+CREATE TABLE ADDRESS(
+   ID INT PRIMARY KEY     NOT NULL,
+   STREET         TEXT	  NOT NULL,
+   CITY           TEXT 	  NOT NULL,
+   STATE          TEXT,
+   ZIP			  TEXT
+);
+
+CREATE TABLE EMPLOYEE(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   SALARY         FLOAT8,
+   ADDRESS		  INT     references ADDRESS(ID)
+);
+
+INSERT INTO ADDRESS (ID,STREET,CITY,STATE, ZIP) VALUES (123, 'Some Street Name', 'Some City', 'Some State', '123456');
+
+INSERT INTO EMPLOYEE (ID,NAME,AGE,SALARY, ADDRESS) VALUES (1, 'Paul', 32, 20000.00, 123);

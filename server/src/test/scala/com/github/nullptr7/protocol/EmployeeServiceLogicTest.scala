@@ -1,10 +1,11 @@
 package com.github.nullptr7
 package protocol
 
+import org.mockito.MockitoSugar.when
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import io.circe.parser._
-import io.circe.syntax._
+
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
@@ -12,9 +13,11 @@ import sttp.client3.testing.SttpBackendStub
 import sttp.monad.MonadAsyncError
 import sttp.tapir.server.stub.TapirStubInterpreter
 
-import data._
+import io.circe.parser._
+
 import models.codecs._
 import exceptions.ErrorResponse._
+import mocks.data._
 import common.BaseTest
 
 class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
@@ -37,12 +40,16 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   "All Employee Endpoint with authMode header" should "work when admin" in {
 
+    when(serviceLogic.employeeRepo.findAllEmployees)
+      .thenReturn(IO.pure(allEmployees))
+
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "admin")
+      .response(asJson[List[Employee]])
       .send(allEmployeeEndpointStub)
 
-    response.unsafeRunSync().body shouldBe Right(allEmployees.asJson.noSpaces)
+    response.unsafeRunSync().body shouldBe Right(allEmployees)
   }
 
   it should "fail when not admin" in {
@@ -80,6 +87,8 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
 
+    when(serviceLogic.employeeRepo.findById(1))
+      .thenReturn(IO.pure(allEmployees.find(_.id == 1)))
     // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/employee?id=1")
@@ -97,6 +106,9 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
   }
 
   it should "return none when the authMode is admin but id is not available from the list" in {
+
+    when(serviceLogic.employeeRepo.findById(9))
+      .thenReturn(IO.pure(Option.empty[Employee]))
 
     // when
     val response = basicRequest

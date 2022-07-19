@@ -1,20 +1,25 @@
 package com.github.nullptr7
 package protocol
 
+import org.mockito.MockitoSugar.when
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.impl.cats.implicits._
 import sttp.client3.testing.SttpBackendStub
 import sttp.monad.MonadAsyncError
 import sttp.tapir.server.stub.TapirStubInterpreter
+
 import io.circe.parser._
 
 import models.codecs.addressCodec
 import models.Address
 import exceptions.ErrorResponse._
 import common.BaseTest
+import mocks.data._
 
 class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
@@ -33,6 +38,9 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
       .backend()
 
   "Address Service By ID endpoint" should "work when admin and valid id" in {
+
+    when(serviceLogic.addressRepo.findAddressById(123))
+      .thenReturn(IO.pure(allAddresses.find(_.id == 123)))
 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/address?id=123")
@@ -54,6 +62,9 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
   }
 
   it should "return empty response when admin and incorrect id" in {
+
+    when(serviceLogic.addressRepo.findAddressById(777))
+      .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/address?id=777")
@@ -80,7 +91,10 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     }
   }
 
-  "Address Service By Zip endpoint" should "work whenadmin and valid zip" in {
+  "Address Service By Zip endpoint" should "work when admin and valid zip" in {
+
+    when(serviceLogic.addressRepo.findAddressByZip("12345"))
+      .thenReturn(IO.pure(allAddresses.find(_.zip.toInt == 12345)))
 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/address?pincode=12345")
@@ -102,6 +116,9 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
   }
 
   it should "return empty response when admin and incorrect zip" in {
+
+    when(serviceLogic.addressRepo.findAddressByZip("963963963"))
+      .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/address?pincode=963963963")
