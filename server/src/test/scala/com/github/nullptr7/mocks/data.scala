@@ -1,6 +1,7 @@
 package com.github.nullptr7
+package mocks
 
-package object data {
+object data {
 
   import models._
 

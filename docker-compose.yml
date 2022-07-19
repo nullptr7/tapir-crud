@@ -1,0 +1,13 @@
+services:
+  postgres:
+    restart: always
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - DEBUG=true
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=nullptr@7
+      - POSTGRES_USER=nullptr7
+    volumes:
+      - ./server/src/main/resources/dbInit.sql:/docker-entrypoint-initdb.d/init.sql
