@@ -38,8 +38,8 @@ object EmployeeRepository {
           Employee(id, name, age, salary, address)
         })
         .attemptTap {
-          case Left(value) => println(value).pure[F] *> Concurrent[F].raiseError[List[Employee]](value)
-          case Right(value) => println(value).pure[F] *> value.pure[F]
+          case Left(error)  => Concurrent[F].raiseError[List[Employee]](error)
+          case Right(value) => value.pure[F]
         }
     }
 
