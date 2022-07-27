@@ -9,7 +9,7 @@ import skunk._
 import fs2.io.net.Network
 import natchez.Trace
 
-import config._
+import configurations.DatabaseConfig
 
 trait DatabaseSession {
 
@@ -23,11 +23,11 @@ object DatabaseSession {
     def sessionR[F[_]: Async: Console: Trace: Network]: Resource[F, Session[F]] =
       Session
         .single[F](
-          host     = config.host,
-          port     = config.port,
+          host     = config.host.value,
+          port     = config.port.value,
           user     = config.user,
           database = config.database,
-          password = Option(config.password)
+          password = Option(config.password.value)
         )
 
   }

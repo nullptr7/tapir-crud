@@ -15,6 +15,16 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   )
 )
 
+lazy val configs =
+  project
+    .settings(
+      commonSettings,
+      libraryDependencies ++= Seq (
+        "com.github.pureconfig" %% "pureconfig" % "0.17.1",
+        "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.1",
+      )
+    )
+
 lazy val database =
   project
     .settings(
@@ -25,7 +35,7 @@ lazy val database =
         "org.tpolecat" %% "skunk-circe" % "0.3.1"
       )
     )
-    .dependsOn(models)
+    .dependsOn(models, configs)
 
 lazy val models =
   project
@@ -50,8 +60,6 @@ lazy val server =
         "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.0.0",
         "org.http4s" %% "http4s-blaze-server" % "0.23.12",
         "io.circe" %% "circe-generic-extras" % "0.14.1",
-        "com.github.pureconfig" %% "pureconfig" % "0.17.1",
-        "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.1",
         "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % "1.0.0" % includeTestandIt,
         "org.scalatest" %% "scalatest" % "3.2.12" % includeTestandIt,
         "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.6.2" % includeTestandIt,
