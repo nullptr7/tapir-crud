@@ -9,7 +9,7 @@ import skunk._
 import fs2.io.net.Network
 import natchez.Trace
 
-import configurations.DatabaseConfig
+import configurations.types.DatabaseConfig
 
 trait DatabaseSession {
 
