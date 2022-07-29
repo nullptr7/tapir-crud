@@ -23,15 +23,17 @@ import configurations._
 import configurations.types._
 import helpers.ConfigLoader
 
+import types.ConfigType._
+
 object Startup extends IOApp.Simple {
 
   private lazy val loadResource: Resource[IO, ApplicationResources] =
     (
-      ConfigLoader[IO].load[DatabaseConfig](DbDev),
-      ConfigLoader[IO].load[BlazeServerConfig](ServerDev)
+      ConfigLoader[IO].load[DatabaseConfig, Postgres.type],
+      ConfigLoader[IO].load[ServerConfig, Blaze.type]
     ).parMapN(ApplicationResources)
 
-  private def withServer(routes: HttpRoutes[IO], serverConfig: BlazeServerConfig): Resource[IO, Server] =
+  private def withServer(routes: HttpRoutes[IO], serverConfig: ServerConfig): Resource[IO, Server] =
     BlazeServerBuilder[IO]
       .bindHttp(serverConfig.port.value, serverConfig.host.value)
       .withHttpApp(routes.orNotFound)

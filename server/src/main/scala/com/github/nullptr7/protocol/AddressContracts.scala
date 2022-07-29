@@ -8,6 +8,7 @@ import sttp.tapir.json.circe._
 import models._
 import models.codecs._
 import exceptions.ErrorResponse._
+import java.util.UUID
 
 trait AddressContracts[F[_]] extends Contracts[F] {
 
@@ -27,6 +28,15 @@ trait AddressContracts[F[_]] extends Contracts[F] {
       .in(header[AuthMode]("X-AuthMode"))
       .in(query[String]("pincode"))
       .out(jsonBody[Option[Address]])
+      .errorOut(jsonBody[ServiceResponseException])
+
+  lazy val addAddress =
+    base
+      .post
+      .in("address")
+      .in(jsonBody[CreateAddress])
+      .in(header[AuthMode]("X-AuthMode"))
+      .out(jsonBody[UUID])
       .errorOut(jsonBody[ServiceResponseException])
 
 }

@@ -10,9 +10,11 @@ import pureconfig.{ConfigReader, ConfigSource}
 
 import configurations.types._
 
-trait ConfigLoader[F[_]] {
+sealed trait ConfigLoader[F[_]] {
 
-  def load[Conf: ConfigReader: ClassTag](configType: ConfigType): Resource[F, Conf]
+  final protected lazy val source = ConfigSource.default
+
+  def load[Conf: ConfigReader: ClassTag, CT <: ConfigType](implicit ct: CT): Resource[F, Conf]
 }
 
 object ConfigLoader {
@@ -22,12 +24,9 @@ object ConfigLoader {
   implicit def forSync[F[_]: Sync]: ConfigLoader[F] =
     new ConfigLoader[F] {
 
-      def load[Conf: ConfigReader: ClassTag](configType: ConfigType): Resource[F, Conf] = Resource.eval {
-        configType.location match {
-          case None       => ConfigSource.default.at(configType.namespace.value).loadF[F, Conf]()
-          case Some(path) => ConfigSource.file(path.value).at(configType.namespace.value).loadF[F, Conf]()
-        }
-      }
+      def load[Conf: ConfigReader: ClassTag, CT <: ConfigType](implicit ct: CT): Resource[F, Conf] =
+        Resource
+          .eval(source.at(ct.namespace.value).loadF[F, Conf]())
 
     }
 

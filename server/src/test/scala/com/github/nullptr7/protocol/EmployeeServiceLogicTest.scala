@@ -99,7 +99,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     // then
     response.unsafeRunSync().body shouldBe Right(
       Some(
-        Employee(1, "John", 12, 1000.0, Address(123, "Main Street", "Anytown", "CA", "12345"))
+        Employee(1, "John", 12, 1000.0, Address(uuid, "Main Street", "Anytown", "CA", "12345"))
       )
     )
 

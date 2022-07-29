@@ -19,12 +19,15 @@ import helper.PostgresSessionHelper
 import models._
 import models.codecs._
 import storage._
+import java.util.UUID
 
 class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with SpecificationLike with CatsEffect with PostgresSessionHelper[IO] {
   sequential
   implicit override val concurrent: Concurrent[IO]  = IO.asyncForIO
   implicit override val console:    std.Console[IO] = IO.consoleForIO
   implicit override val network:    Network[IO]     = Network.forAsync[IO]
+
+  private val uuid: UUID = UUID.fromString("20d88c49-01e9-40d0-b568-982100e676ba")
 
   override val resource: Resource[IO, ServiceLogic[IO]] =
     for {
@@ -57,7 +60,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
         name    = "Paul",
         age     = 32,
         salary  = 20000.0,
-        address = Address(123, "Some Street Name", "Some City", "Some State", "123456")
+        address = Address(uuid, "Some Street Name", "Some City", "Some State", "123456")
       )
     )
     resp.body must beRight(allEmployees)
@@ -71,7 +74,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
           .thenRunLogic()
           .backend()
       basicRequest
-        .get(uri"http://localhost:8080/employees/address?id=123")
+        .get(uri"http://localhost:8080/employees/address?id=$uuid")
         .header("X-AuthMode", "admin")
         .response(asJson[Option[Address]])
         .send(addressByIdEndpointStub)
@@ -80,7 +83,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
       _.body must beRight(
         Some(
           Address(
-            123,
+            uuid,
             "Some Street Name",
             "Some City",
             "Some State",
@@ -107,7 +110,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
       _.body must beRight(
         Some(
           Address(
-            123,
+            uuid,
             "Some Street Name",
             "Some City",
             "Some State",

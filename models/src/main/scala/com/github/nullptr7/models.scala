@@ -5,6 +5,8 @@ import io.circe.generic.semiauto.deriveCodec
 
 package models {
 
+  import java.util.UUID
+
   final case class Employee(
     id:      Int,
     name:    String,
@@ -13,8 +15,17 @@ package models {
     address: Address
   )
 
+  final case class AddressId(value: UUID) extends AnyVal
+
+  final case class CreateAddress(
+    street: String,
+    city:   String,
+    state:  String,
+    zip:    String
+  )
+
   final case class Address(
-    id:     Int,
+    id:     UUID,
     street: String,
     city:   String,
     state:  String,
@@ -23,8 +34,9 @@ package models {
 
   object codecs {
 
-    implicit val employeeCodec: Codec[Employee] = deriveCodec[Employee]
-    implicit val addressCodec:  Codec[Address]  = deriveCodec[Address]
+    implicit val employeeCodec:      Codec[Employee]      = deriveCodec[Employee]
+    implicit val addressCodec:       Codec[Address]       = deriveCodec[Address]
+    implicit val createAddressCodec: Codec[CreateAddress] = deriveCodec[CreateAddress]
   }
 
 }

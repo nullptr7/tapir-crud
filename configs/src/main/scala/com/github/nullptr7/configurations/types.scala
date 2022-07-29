@@ -11,23 +11,31 @@ package types {
   final case class Port(value: Int) extends AnyVal
 
   final case class Namespace(value: String) extends AnyVal
-  final case class ConfigLocation(value: String) extends AnyVal
 
-  sealed trait ConfigType {
+  trait ConfigType {
     val namespace: Namespace
-    val location:  Option[ConfigLocation]
   }
 
-  final object DbDev extends ConfigType {
-    val namespace: Namespace = Namespace("db")
+  object ConfigType {
 
-    val location: Option[ConfigLocation] = None
+    implicit object Blaze    extends ConfigType {
+      val namespace: Namespace = Namespace("server")
+    }
+
+    implicit object Postgres extends ConfigType {
+      val namespace: Namespace = Namespace("db")
+    }
+
   }
 
-  final object ServerDev extends ConfigType {
-    val location: Option[ConfigLocation] = None
+  final case class ServerConfig(host: Hostname, port: Port)
 
-    val namespace: Namespace = Namespace("server")
-  }
+  final case class DatabaseConfig(
+    val host:     Hostname,
+    val port:     Port,
+    val user:     String,
+    val database: String,
+    val password: Sensitive
+  )
 
 }
