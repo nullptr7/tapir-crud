@@ -5,6 +5,7 @@ import cats.effect.Async
 
 import exceptions.ErrorResponse._
 import storage.{AddressRepository, EmployeeRepository}
+import java.util.UUID
 
 class ServiceLogic[F[_]: Async](
   private[protocol] val employeeRepo: EmployeeRepository[F],
@@ -22,14 +23,26 @@ class ServiceLogic[F[_]: Async](
   }
 
   private[protocol] lazy val addressByIdEndpoint: ServerEndpointF = addressById.serverLogicRecoverErrors[F] { case (authMode, id) =>
-    handle(authMode)(addressRepo.findAddressById(id.toLong))
+    handle(authMode)(addressRepo.findAddressById(UUID.fromString(id)))
   }
 
   private[protocol] lazy val addressByZipEndpoint: ServerEndpointF = addressByPincode.serverLogicRecoverErrors[F] { case (authMode, pincode) =>
     handle(authMode)(addressRepo.findAddressByZip(pincode))
   }
 
-  override val make: F[List[ServerEndpointF]] = List(allEmployeeEndpoint, empByIdEndpoint, addressByIdEndpoint, addressByZipEndpoint).pure[F]
+  private[protocol] lazy val addAddressEndpoint: ServerEndpointF = addAddress.serverLogicRecoverErrors[F] { case (address, authMode) =>
+    handle(authMode)(addressRepo.addAddress(address))
+  }
+
+  override val make: F[List[ServerEndpointF]] =
+    List(
+      allEmployeeEndpoint,
+      empByIdEndpoint,
+      addressByIdEndpoint,
+      addressByZipEndpoint,
+      addAddressEndpoint
+    )
+      .pure[F]
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] = authMode match {
     case Admin       => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }

@@ -1,19 +1,37 @@
 CREATE TABLE ADDRESS(
-   ID INT PRIMARY KEY     NOT NULL,
-   STREET         TEXT	  NOT NULL,
-   CITY           TEXT 	  NOT NULL,
-   STATE          TEXT,
-   ZIP			  TEXT
+   ID UUID PRIMARY KEY NOT NULL,
+   STREET TEXT NOT NULL,
+   CITY TEXT NOT NULL,
+   STATE TEXT,
+   ZIP TEXT
 );
 
 CREATE TABLE EMPLOYEE(
-   ID INT PRIMARY KEY     NOT NULL,
-   NAME           TEXT    NOT NULL,
-   AGE            INT     NOT NULL,
-   SALARY         FLOAT8,
-   ADDRESS		  INT     references ADDRESS(ID)
+   ID INT PRIMARY KEY NOT NULL,
+   NAME TEXT NOT NULL,
+   AGE INT NOT NULL,
+   SALARY FLOAT8,
+   ADDRESS UUID references ADDRESS(ID)
 );
 
-INSERT INTO ADDRESS (ID,STREET,CITY,STATE, ZIP) VALUES (123, 'Some Street Name', 'Some City', 'Some State', '123456');
+INSERT INTO
+   ADDRESS (ID, STREET, CITY, STATE, ZIP)
+VALUES
+   (
+      '20d88c49-01e9-40d0-b568-982100e676ba',
+      'Some Street Name',
+      'Some City',
+      'Some State',
+      '123456'
+   );
 
-INSERT INTO EMPLOYEE (ID,NAME,AGE,SALARY, ADDRESS) VALUES (1, 'Paul', 32, 20000.00, 123);
+INSERT INTO
+   EMPLOYEE (ID, NAME, AGE, SALARY, ADDRESS)
+VALUES
+   (
+      1,
+      'Paul',
+      32,
+      20000.00,
+      '20d88c49-01e9-40d0-b568-982100e676ba'
+   );

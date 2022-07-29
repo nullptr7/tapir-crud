@@ -39,11 +39,11 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   "Address Service By ID endpoint" should "work when admin and valid id" in {
 
-    when(serviceLogic.addressRepo.findAddressById(123))
-      .thenReturn(IO.pure(allAddresses.find(_.id == 123)))
+    when(serviceLogic.addressRepo.findAddressById(uuid))
+      .thenReturn(IO.pure(allAddresses.find(_.id == uuid)))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=123")
+      .get(uri"http://localhost:8080/employees/address?id=$uuid")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByIdEndpointStub)
@@ -51,7 +51,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     response.unsafeRunSync().body shouldBe Right(
       Some(
         Address(
-          id     = 123,
+          id     = uuid,
           street = "Main Street",
           city   = "Anytown",
           state  = "CA",
@@ -63,11 +63,11 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   it should "return empty response when admin and incorrect id" in {
 
-    when(serviceLogic.addressRepo.findAddressById(777))
+    when(serviceLogic.addressRepo.findAddressById(uuid))
       .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=777")
+      .get(uri"http://localhost:8080/employees/address?id=$uuid")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByIdEndpointStub)
@@ -105,7 +105,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     response.unsafeRunSync().body shouldBe Right(
       Some(
         Address(
-          id     = 123,
+          id     = uuid,
           street = "Main Street",
           city   = "Anytown",
           state  = "CA",

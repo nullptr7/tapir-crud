@@ -23,8 +23,10 @@ object ConfigLoader {
 
   implicit def forSync[F[_]: Sync]: ConfigLoader[F] =
     new ConfigLoader[F] {
+
       def load[Conf: ConfigReader: ClassTag, CT <: ConfigType](implicit ct: CT): Resource[F, Conf] =
-        Resource.eval(source.at(ct.namespace.value).loadF[F, Conf]())
+        Resource
+          .eval(source.at(ct.namespace.value).loadF[F, Conf]())
 
     }
 

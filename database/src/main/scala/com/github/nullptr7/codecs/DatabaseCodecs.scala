@@ -8,7 +8,7 @@ import models.Address
 
 object DatabaseCodecs {
 
-  val dbToAddressDecoder: Decoder[Address] = (int4 ~ text ~ text ~ text ~ text).map { case id ~ street ~ city ~ state ~ zip =>
+  val dbToAddressDecoder: Decoder[Address] = (uuid ~ text ~ text ~ text ~ text).map { case id ~ street ~ city ~ state ~ zip =>
     Address(id, street, city, state, zip)
   }
 
