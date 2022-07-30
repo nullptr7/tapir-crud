@@ -1,6 +1,8 @@
 package com.github.nullptr7
 package protocol
 
+import java.util.UUID
+
 import org.mockito.MockitoSugar.when
 
 import cats.effect.IO
@@ -21,8 +23,6 @@ import models.{Address, CreateAddress}
 import exceptions.ErrorResponse._
 import common.BaseTest
 import mocks.data._
-
-import java.util.UUID
 
 class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
