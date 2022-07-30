@@ -32,4 +32,11 @@ trait EmployeeContracts[F[_]] extends Contracts[F] {
       .out(jsonBody[Option[Employee]])
       .errorOut(jsonBody[ServiceResponseException])
 
+  protected[protocol] lazy val addEmployeeEP =
+    base
+      .post
+      .in("add")
+      .in(header[AuthMode]("X-AuthMode"))
+      
+
 }

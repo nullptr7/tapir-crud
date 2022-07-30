@@ -1,11 +1,12 @@
 package com.github.nullptr7
 package protocol
 
+import java.util.UUID
+
 import cats.effect.Async
 
 import exceptions.ErrorResponse._
 import storage.{AddressRepository, EmployeeRepository}
-import java.util.UUID
 
 class ServiceLogic[F[_]: Async](
   private[protocol] val employeeRepo: EmployeeRepository[F],

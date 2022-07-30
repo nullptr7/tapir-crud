@@ -1,6 +1,8 @@
 package com.github.nullptr7
 package protocol
 
+import java.util.UUID
+
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
@@ -8,7 +10,6 @@ import sttp.tapir.json.circe._
 import models._
 import models.codecs._
 import exceptions.ErrorResponse._
-import java.util.UUID
 
 trait AddressContracts[F[_]] extends Contracts[F] {
 

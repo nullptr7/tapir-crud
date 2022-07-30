@@ -22,7 +22,6 @@ import protocol.ServiceLogic
 import configurations._
 import configurations.types._
 import helpers.ConfigLoader
-
 import types.ConfigType._
 
 object Startup extends IOApp.Simple {
@@ -47,7 +46,7 @@ object Startup extends IOApp.Simple {
   }
 
   private def withRoutes(dbConfig: DatabaseConfig): Resource[IO, HttpRoutes[IO]] = for {
-    session     <- DatabaseSession.create(dbConfig).sessionR[IO]
+    session     <- DatabaseSession[IO].make(dbConfig)
     serverLogic <- Resource.eval(initServiceLogic(session))
     routes      <- Resource.eval(
                      IO(

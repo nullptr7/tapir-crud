@@ -1,6 +1,8 @@
 package com.github.nullptr7
 package protocol
 
+import java.util.UUID
+
 import org.specs2.mutable.SpecificationLike
 
 import cats.effect._
@@ -19,7 +21,6 @@ import helper.PostgresSessionHelper
 import models._
 import models.codecs._
 import storage._
-import java.util.UUID
 
 class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with SpecificationLike with CatsEffect with PostgresSessionHelper[IO] {
   sequential

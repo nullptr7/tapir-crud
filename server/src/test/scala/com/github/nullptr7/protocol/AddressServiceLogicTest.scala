@@ -14,12 +14,15 @@ import sttp.monad.MonadAsyncError
 import sttp.tapir.server.stub.TapirStubInterpreter
 
 import io.circe.parser._
+import io.circe.syntax.EncoderOps
 
-import models.codecs.addressCodec
-import models.Address
+import models.codecs.{addressCodec, createAddressCodec}
+import models.{Address, CreateAddress}
 import exceptions.ErrorResponse._
 import common.BaseTest
 import mocks.data._
+
+import java.util.UUID
 
 class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
@@ -34,6 +37,12 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
   private lazy val addressByZipEndpointStub =
     TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))
       .whenServerEndpoint(addressByZipEndpoint)
+      .thenRunLogic()
+      .backend()
+
+  private lazy val addAddressEndpointStub =
+    TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))
+      .whenServerEndpoint(addAddressEndpoint)
       .thenRunLogic()
       .backend()
 
@@ -134,6 +143,42 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
       .get(uri"http://localhost:8080/employees/address?pincode=963963963")
       .header("X-AuthMode", "nonadmin")
       .send(addressByZipEndpointStub)
+
+    val errorBody = response.unsafeRunSync().body
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
+      }
+    }
+  }
+
+  "Add Address Service endpoint" should "successfully adds the address" in {
+
+    val givenUUID = UUID.randomUUID()
+    val addressInRequest = CreateAddress("street", "city", "state", "123456")
+
+    when(serviceLogic.addressRepo.addAddress(addressInRequest))
+      .thenReturn(IO.pure(givenUUID))
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/address")
+      .body(addressInRequest.asJson.toString)
+      .header("X-AuthMode", "admin")
+      .response(asJson[UUID])
+      .send(addAddressEndpointStub)
+
+    response.unsafeRunSync().body shouldBe Right(givenUUID)
+  }
+
+  it should "return unauthorized when AuthMode is nonadmin" in {
+
+    val addressInRequest = CreateAddress("street", "city", "state", "123456")
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/address")
+      .body(addressInRequest.asJson.toString)
+      .header("X-AuthMode", "nonadmin")
+      .send(addAddressEndpointStub)
 
     val errorBody = response.unsafeRunSync().body
     inside(errorBody) { case Left(value) =>

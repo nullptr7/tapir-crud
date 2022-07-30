@@ -1,11 +1,13 @@
 package com.github.nullptr7
 package storage
 
+import java.util.UUID
+
 import cats.effect._
 import cats.syntax.all._
 
 import models.{Address, CreateAddress}
-import java.util.UUID
+import helpers.GenUUID
 
 trait AddressRepository[F[_]] {
 
@@ -72,18 +74,17 @@ object AddressRepository {
         sql"""
           INSERT INTO ADDRESS (ID, STREET, CITY, STATE, ZIP)
           VALUES ($uuid, $text, $text, $text, $text)          
-        """.command.contramap {
-          case id ~ i => id ~ i.street ~ i.city ~ i.state ~ i.zip
+        """.command.contramap { case id ~ i =>
+          id ~ i.street ~ i.city ~ i.state ~ i.zip
         }
-
-      // TODO: Shoud generate UUID FP way...
-      val uuid1 = UUID.randomUUID
 
       session
         .prepare(insertAddressQuery)
-        //.evalTap(_ => (println(uuid1)).pure[F])
-        .use(_.execute(uuid1 ~ address))
-        .as(uuid1)
+        .use { cmd =>
+          GenUUID[F].make.flatMap { id =>
+            cmd.execute(id ~ address).as(id)
+          }
+        }
     }
 
   }

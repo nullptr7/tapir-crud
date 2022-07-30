@@ -11,16 +11,18 @@ import natchez.Trace
 
 import configurations.types.DatabaseConfig
 
-trait DatabaseSession {
+trait DatabaseSession[F[_]] {
 
-  def sessionR[F[_]: Async: Console: Trace: Network]: Resource[F, Session[F]]
+  def make(config: DatabaseConfig): Resource[F, Session[F]]
 }
 
 object DatabaseSession {
 
-  def create(config: DatabaseConfig) = new DatabaseSession {
+  def apply[F[_]: DatabaseSession]: DatabaseSession[F] = implicitly
 
-    def sessionR[F[_]: Async: Console: Trace: Network]: Resource[F, Session[F]] =
+  implicit def withConfig[F[_]: Async: Console: Trace: Network] = new DatabaseSession[F] {
+
+    def make(config: DatabaseConfig): Resource[F, Session[F]] =
       Session
         .single[F](
           host     = config.host.value,
@@ -31,5 +33,7 @@ object DatabaseSession {
         )
 
   }
+
+  def create(config: DatabaseConfig) = ???
 
 }
