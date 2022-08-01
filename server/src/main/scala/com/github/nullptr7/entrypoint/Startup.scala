@@ -1,7 +1,7 @@
 package com.github.nullptr7
 package entrypoint
 
-import org.http4s.HttpRoutes
+import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 
@@ -9,7 +9,6 @@ import cats.effect._
 import cats.implicits._
 
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.server.http4s.Http4sServerInterpreter
 
 import skunk.Session
 
@@ -32,10 +31,10 @@ object Startup extends IOApp.Simple {
       ConfigLoader[IO].load[ServerConfig, Blaze.type]
     ).parMapN(ApplicationResources)
 
-  private def withServer(routes: HttpRoutes[IO], serverConfig: ServerConfig): Resource[IO, Server] =
+  private def withServer(routes: HttpApp[IO], serverConfig: ServerConfig): Resource[IO, Server] =
     BlazeServerBuilder[IO]
       .bindHttp(serverConfig.port.value, serverConfig.host.value)
-      .withHttpApp(routes.orNotFound)
+      .withHttpApp(routes)
       .resource
 
   private def initServiceLogic(session: Session[IO]): IO[List[ServerEndpoint[Any, IO]]] = {
@@ -45,14 +44,10 @@ object Startup extends IOApp.Simple {
     serviceLogic.make
   }
 
-  private def withRoutes(dbConfig: DatabaseConfig): Resource[IO, HttpRoutes[IO]] = for {
+  private def withRoutes(dbConfig: DatabaseConfig): Resource[IO, HttpApp[IO]] = for {
     session     <- DatabaseSession[IO].make(dbConfig)
     serverLogic <- Resource.eval(initServiceLogic(session))
-    routes      <- Resource.eval(
-                     IO(
-                       Http4sServerInterpreter[IO]().toRoutes(serverLogic)
-                     )
-                   )
+    routes      <- Routes.make[IO](serverLogic)
   } yield routes
 
   private lazy val server: Resource[IO, Server] =

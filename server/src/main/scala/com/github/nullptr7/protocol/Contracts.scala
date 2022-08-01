@@ -11,6 +11,7 @@ trait Contracts[F[_]] {
   protected[protocol] lazy val base =
     infallibleEndpoint
       .in("employees")
+      .in(header[AuthMode]("X-AuthMode").default(MissingAuthMode))
 
   protected[protocol] val make: F[List[ServerEndpointF]]
 }

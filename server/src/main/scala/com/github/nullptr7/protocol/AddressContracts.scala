@@ -17,7 +17,6 @@ trait AddressContracts[F[_]] extends Contracts[F] {
     base
       .get
       .in("address")
-      .in(header[AuthMode]("X-AuthMode"))
       .in(query[String]("id"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
@@ -26,7 +25,6 @@ trait AddressContracts[F[_]] extends Contracts[F] {
     base
       .get
       .in("address")
-      .in(header[AuthMode]("X-AuthMode"))
       .in(query[String]("pincode"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
@@ -36,7 +34,6 @@ trait AddressContracts[F[_]] extends Contracts[F] {
       .post
       .in("address")
       .in(jsonBody[CreateAddress])
-      .in(header[AuthMode]("X-AuthMode"))
       .out(jsonBody[UUID])
       .errorOut(jsonBody[ServiceResponseException])
 

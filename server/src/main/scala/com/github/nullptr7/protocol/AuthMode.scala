@@ -5,9 +5,10 @@ import sttp.tapir.{DecodeResult, _}
 
 sealed trait AuthMode
 
-case object Admin       extends AuthMode
-case object NonAdmin    extends AuthMode
-case object InvalidMode extends AuthMode
+case object Admin           extends AuthMode
+case object NonAdmin        extends AuthMode
+case object InvalidMode     extends AuthMode
+case object MissingAuthMode extends AuthMode
 
 object AuthMode {
 
@@ -24,9 +25,10 @@ object AuthMode {
   }
 
   private[this] def encode(authMode: AuthMode): String = authMode match {
-    case Admin       => "admin"
-    case NonAdmin    => "nonadmin"
-    case InvalidMode => "invalid"
+    case Admin           => "admin"
+    case NonAdmin        => "nonadmin"
+    case InvalidMode     => "invalid"
+    case MissingAuthMode => "missing"
   }
 
   /*  implicit val authModeDecoder: Decoder[AuthMode] =

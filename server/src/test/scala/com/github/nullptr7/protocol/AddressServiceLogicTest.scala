@@ -100,6 +100,21 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     }
   }
 
+  it should "return auth header not passed exception when AuthMode is not passed in the header" in {
+
+    val response = basicRequest
+      .get(uri"http://localhost:8080/employees/address?id=777")
+      .send(addressByIdEndpointStub)
+
+    val errorBody = response.unsafeRunSync().body
+
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe MissingAuthException
+      }
+    }
+  }
+
   "Address Service By Zip endpoint" should "work when admin and valid zip" in {
 
     when(serviceLogic.addressRepo.findAddressByZip("12345"))
@@ -152,9 +167,9 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     }
   }
 
-  "Add Address Service endpoint" should "successfully adds the address" in {
+  "Add Address Service endpoint" should "successfully add the address" in {
 
-    val givenUUID = UUID.randomUUID()
+    val givenUUID        = UUID.randomUUID()
     val addressInRequest = CreateAddress("street", "city", "state", "123456")
 
     when(serviceLogic.addressRepo.addAddress(addressInRequest))
@@ -186,5 +201,41 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
         value shouldBe UnauthorizedAuthException
       }
     }
+  }
+
+  it should "return invalid authentication when AuthMode header is not passed correctly" in {
+    val addressInRequest = CreateAddress("street", "city", "state", "123456")
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/address")
+      .body(addressInRequest.asJson.toString)
+      .header("X-AuthMode", "xxx")
+      .send(addAddressEndpointStub)
+
+    val errorBody = response.unsafeRunSync().body
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe InvalidAuthException
+      }
+    }
+  }
+
+  it should "return auth header not passed exception when AuthMode header is not passed" in {
+
+    val addressInRequest = CreateAddress("street", "city", "state", "123456")
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/address")
+      .body(addressInRequest.asJson.toString)
+      .send(addAddressEndpointStub)
+
+    val errorBody = response.unsafeRunSync().body
+    println(errorBody)
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe MissingAuthException
+      }
+    }
+
   }
 }

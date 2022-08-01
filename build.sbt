@@ -6,6 +6,11 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 val scalafixCommonSettings = inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))
 
+val Versions =
+  new {
+    val tapir = "1.0.0"
+  }
+
 lazy val commonSettings: Seq[Setting[_]] = Seq(
   scalacOptions -= "-Xfatal-warnings",
   // scalafixCommonSettings,
@@ -19,9 +24,9 @@ lazy val configs =
   project
     .settings(
       commonSettings,
-      libraryDependencies ++= Seq (
+      libraryDependencies ++= Seq(
         "com.github.pureconfig" %% "pureconfig" % "0.17.1",
-        "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.1",
+        "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.1"
       )
     )
 
@@ -43,7 +48,7 @@ lazy val models =
       commonSettings,
       // scalafixCommonSettings,
       libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "1.0.0"
+        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir
       )
     )
 
@@ -57,10 +62,10 @@ lazy val server =
       commonSettings,
       scalafixCommonSettings,
       libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.0.0",
+        "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % Versions.tapir,
         "org.http4s" %% "http4s-blaze-server" % "0.23.12",
         "io.circe" %% "circe-generic-extras" % "0.14.1",
-        "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % "1.0.0" % includeTestandIt,
+        "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % Versions.tapir % includeTestandIt,
         "org.scalatest" %% "scalatest" % "3.2.12" % includeTestandIt,
         "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.6.2" % includeTestandIt,
         "com.softwaremill.sttp.client3" %% "circe" % "3.6.2" % includeTestandIt,

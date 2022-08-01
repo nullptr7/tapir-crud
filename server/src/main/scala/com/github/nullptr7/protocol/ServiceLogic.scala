@@ -31,7 +31,7 @@ class ServiceLogic[F[_]: Async](
     handle(authMode)(addressRepo.findAddressByZip(pincode))
   }
 
-  private[protocol] lazy val addAddressEndpoint: ServerEndpointF = addAddress.serverLogicRecoverErrors[F] { case (address, authMode) =>
+  private[protocol] lazy val addAddressEndpoint: ServerEndpointF = addAddress.serverLogicRecoverErrors[F] { case (authMode, address) =>
     handle(authMode)(addressRepo.addAddress(address))
   }
 
@@ -46,9 +46,10 @@ class ServiceLogic[F[_]: Async](
       .pure[F]
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] = authMode match {
-    case Admin       => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
-    case NonAdmin    => Async[F].raiseError[O](UnauthorizedAuthException)
-    case InvalidMode => Async[F].raiseError[O](InvalidAuthException)
+    case Admin           => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
+    case MissingAuthMode => Async[F].raiseError[O](MissingAuthException)
+    case NonAdmin        => Async[F].raiseError[O](UnauthorizedAuthException)
+    case InvalidMode     => Async[F].raiseError[O](InvalidAuthException)
   }
 
 }

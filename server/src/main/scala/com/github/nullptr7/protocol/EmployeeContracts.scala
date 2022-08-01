@@ -7,19 +7,16 @@ import sttp.tapir.json.circe._
 
 import models._
 import models.codecs._
+import AuthMode._
+import exceptions._
+import ErrorResponse._
 
 trait EmployeeContracts[F[_]] extends Contracts[F] {
-
-  import AuthMode._
-  import exceptions._
-
-  import ErrorResponse._
 
   protected[protocol] lazy val allEmployeesEP: Endpoint[Unit, AuthMode, ServiceResponseException, List[Employee], Any] =
     base
       .get
       .in("get" / "all")
-      .in(header[AuthMode]("X-AuthMode"))
       .out(jsonBody[List[Employee]])
       .errorOut(jsonBody[ServiceResponseException])
 
@@ -27,16 +24,22 @@ trait EmployeeContracts[F[_]] extends Contracts[F] {
     base
       .get
       .in("get" / "employee")
-      .in(header[AuthMode]("X-AuthMode"))
       .in(query[String]("id"))
       .out(jsonBody[Option[Employee]])
       .errorOut(jsonBody[ServiceResponseException])
+
+//      .errorOut(
+//        oneOf[ServiceResponseException](
+//          oneOfVariant(statusCode(StatusCode.InternalServerError).and(jsonBody[GenericException])),
+//          oneOfVariant(statusCode(StatusCode.Unauthorized).and(jsonBody[ServiceResponseException])),
+//          oneOfVariant(statusCode(StatusCode.NonAuthoritativeInformation).and(jsonBody[InvalidAuthException.type]))
+//        )
+//      )
 
   protected[protocol] lazy val addEmployeeEP =
     base
       .post
       .in("add")
       .in(header[AuthMode]("X-AuthMode"))
-      
 
 }
