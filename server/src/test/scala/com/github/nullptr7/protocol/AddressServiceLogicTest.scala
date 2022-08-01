@@ -230,7 +230,6 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
       .send(addAddressEndpointStub)
 
     val errorBody = response.unsafeRunSync().body
-    println(errorBody)
     inside(errorBody) { case Left(value) =>
       inside(decode[ServiceResponseException](value)) { case Right(value) =>
         value shouldBe MissingAuthException
