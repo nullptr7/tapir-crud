@@ -120,5 +120,32 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
         )
       )
     }
+
+    "add new address successfully" in withResource { rs =>
+      lazy val goodRequest =
+        """
+          {
+            "street": "Some Awesome Street Address",
+            "city": "Some City",
+            "state": "Some State",
+            "zip": "123456"
+          }
+        """.stripMargin
+
+      lazy val addAddressEndpointStub =
+        TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))
+          .whenServerEndpoint(rs.addAddressEndpoint)
+          .thenRunLogic()
+          .backend()
+
+      basicRequest
+        .post(uri"http://localhost:8080/employees/address")
+        .body(goodRequest)
+        .header("X-AuthMode", "admin")
+        .response(asJson[UUID])
+        .send(addAddressEndpointStub)
+    }.map {
+      _.body must beRight
+    }
   }
 }
