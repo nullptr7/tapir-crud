@@ -6,8 +6,8 @@ import java.util.UUID
 import cats.effect._
 import cats.syntax.all._
 
-import models.{Address, CreateAddress, AddressId}
-import helpers.GenUUID
+import models.{Address, AddressId, CreateAddress}
+import optics.ID
 
 trait AddressRepository[F[_]] {
 
@@ -70,10 +70,10 @@ object AddressRepository {
 
     override def addAddress(address: CreateAddress): F[AddressId] = {
 
-      val insertAddressQuery: Command[UUID ~ CreateAddress] =
+      val insertAddressQuery: Command[AddressId ~ CreateAddress] =
         sql"""
           INSERT INTO ADDRESS (ID, STREET, CITY, STATE, ZIP)
-          VALUES ($uuid, $text, $text, $text, $text)          
+          VALUES ($addressIdEncoder, $text, $text, $text, $text)          
         """.command.contramap { case id ~ i =>
           id ~ i.street ~ i.city ~ i.state ~ i.zip
         }
@@ -81,8 +81,8 @@ object AddressRepository {
       session
         .prepare(insertAddressQuery)
         .use { cmd =>
-          GenUUID[F].make.flatMap { id =>
-            cmd.execute(id ~ address).as(AddressId(id))
+          ID.make[F, AddressId].flatMap { id =>
+            cmd.execute(id ~ address).as(id)
           }
         }
     }

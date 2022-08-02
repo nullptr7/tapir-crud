@@ -4,7 +4,8 @@ ThisBuild / scalaVersion := "2.13.8"
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 
-val scalafixCommonSettings = inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))
+val scalafixCommonSettings =
+  inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))
 
 val Versions =
   new {
@@ -48,7 +49,8 @@ lazy val models =
       commonSettings,
       // scalafixCommonSettings,
       libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir
+        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir,
+        "dev.optics" %% "monocle-core" % "3.1.0"
       )
     )
 

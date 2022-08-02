@@ -142,7 +142,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
         .post(uri"http://localhost:8080/employees/address")
         .body(goodRequest)
         .header("X-AuthMode", "admin")
-        .response(asJson[UUID])
+        .response(asJson[AddressId])
         .send(addAddressEndpointStub)
     }.map {
       _.body must beRight
