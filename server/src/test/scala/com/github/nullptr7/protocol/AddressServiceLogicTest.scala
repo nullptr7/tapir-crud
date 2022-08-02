@@ -18,8 +18,8 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import io.circe.parser._
 import io.circe.syntax.EncoderOps
 
-import models.codecs.{addressCodec, createAddressCodec}
-import models.{Address, CreateAddress}
+import models.codecs.{addressCodec, createAddressCodec, addressIdCodec}
+import models.{Address, CreateAddress, AddressId}
 import exceptions.ErrorResponse._
 import common.BaseTest
 import mocks.data._
@@ -173,16 +173,16 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     val addressInRequest = CreateAddress("street", "city", "state", "123456")
 
     when(serviceLogic.addressRepo.addAddress(addressInRequest))
-      .thenReturn(IO.pure(givenUUID))
+      .thenReturn(IO.pure(AddressId(givenUUID)))
 
     val response = basicRequest
       .post(uri"http://localhost:8080/employees/address")
       .body(addressInRequest.asJson.toString)
       .header("X-AuthMode", "admin")
-      .response(asJson[UUID])
+      .response(asJson[AddressId])
       .send(addAddressEndpointStub)
 
-    response.unsafeRunSync().body shouldBe Right(givenUUID)
+    response.unsafeRunSync().body shouldBe Right(AddressId(givenUUID))
   }
 
   it should "return unauthorized when AuthMode is nonadmin" in {

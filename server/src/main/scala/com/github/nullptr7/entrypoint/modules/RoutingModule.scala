@@ -19,7 +19,7 @@ import configurations.types._
 
 abstract class RoutingModule[F[_]: Async: std.Console: Trace: Network] {
 
-  final protected[modules] def withRoutes(dbConfig: DatabaseConfig): Resource[F, HttpApp[F]] =
+  final private[modules] def withRoutes(dbConfig: DatabaseConfig): Resource[F, HttpApp[F]] =
     for {
       session     <- DatabaseSession[F].make(dbConfig)
       serverLogic <- Resource.eval(initServiceLogic(session))

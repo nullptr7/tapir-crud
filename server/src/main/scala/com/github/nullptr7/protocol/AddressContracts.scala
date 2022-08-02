@@ -1,8 +1,6 @@
 package com.github.nullptr7
 package protocol
 
-import java.util.UUID
-
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
@@ -34,7 +32,7 @@ trait AddressContracts[F[_]] extends Contracts[F] {
       .post
       .in("address")
       .in(jsonBody[CreateAddress])
-      .out(jsonBody[UUID])
+      .out(jsonBody[AddressId])
       .errorOut(jsonBody[ServiceResponseException])
 
 }

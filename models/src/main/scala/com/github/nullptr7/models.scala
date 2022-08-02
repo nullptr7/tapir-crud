@@ -37,6 +37,7 @@ package models {
     implicit val employeeCodec:      Codec[Employee]      = deriveCodec[Employee]
     implicit val addressCodec:       Codec[Address]       = deriveCodec[Address]
     implicit val createAddressCodec: Codec[CreateAddress] = deriveCodec[CreateAddress]
+    implicit val addressIdCodec:     Codec[AddressId]     = deriveCodec[AddressId]
   }
 
 }

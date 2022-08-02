@@ -6,7 +6,7 @@ import java.util.UUID
 import cats.effect._
 import cats.syntax.all._
 
-import models.{Address, CreateAddress}
+import models.{Address, CreateAddress, AddressId}
 import helpers.GenUUID
 
 trait AddressRepository[F[_]] {
@@ -15,7 +15,7 @@ trait AddressRepository[F[_]] {
 
   def findAddressByZip(pincode: String): F[Option[Address]]
 
-  def addAddress(address: CreateAddress): F[UUID]
+  def addAddress(address: CreateAddress): F[AddressId]
 }
 
 object AddressRepository {
@@ -68,7 +68,7 @@ object AddressRepository {
         )
     }
 
-    override def addAddress(address: CreateAddress): F[UUID] = {
+    override def addAddress(address: CreateAddress): F[AddressId] = {
 
       val insertAddressQuery: Command[UUID ~ CreateAddress] =
         sql"""
@@ -82,7 +82,7 @@ object AddressRepository {
         .prepare(insertAddressQuery)
         .use { cmd =>
           GenUUID[F].make.flatMap { id =>
-            cmd.execute(id ~ address).as(id)
+            cmd.execute(id ~ address).as(AddressId(id))
           }
         }
     }
