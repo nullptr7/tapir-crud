@@ -18,7 +18,7 @@ package types {
 
   object ConfigType {
 
-    implicit object Blaze    extends ConfigType {
+    implicit object Blaze extends ConfigType {
       val namespace: Namespace = Namespace("server")
     }
 

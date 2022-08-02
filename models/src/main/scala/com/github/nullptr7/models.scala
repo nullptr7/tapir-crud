@@ -12,11 +12,11 @@ import optics.IsUUID
 package models {
 
   final case class Employee(
-      id: Int,
-      name: String,
-      age: Int,
-      salary: Double,
-      address: Address
+    id:      Int,
+    name:    String,
+    age:     Int,
+    salary:  Double,
+    address: Address
   )
 
   final case class AddressId(value: UUID) extends AnyVal
@@ -32,27 +32,27 @@ package models {
   }
 
   final case class CreateAddress(
-      street: String,
-      city: String,
-      state: String,
-      zip: String
+    street: String,
+    city:   String,
+    state:  String,
+    zip:    String
   )
 
   final case class Address(
-      id: AddressId,
-      street: String,
-      city: String,
-      state: String,
-      zip: String
+    id:     AddressId,
+    street: String,
+    city:   String,
+    state:  String,
+    zip:    String
   )
 
   object codecs {
 
-    implicit val employeeCodec: Codec[Employee] = deriveCodec[Employee]
-    implicit val addressCodec: Codec[Address] = deriveCodec[Address]
+    implicit val employeeCodec:      Codec[Employee]      = deriveCodec[Employee]
+    implicit val addressCodec:       Codec[Address]       = deriveCodec[Address]
     implicit val createAddressCodec: Codec[CreateAddress] =
       deriveCodec[CreateAddress]
-    implicit val addressIdCodec: Codec[AddressId] = deriveCodec[AddressId]
+    implicit val addressIdCodec:     Codec[AddressId]     = deriveCodec[AddressId]
   }
 
 }

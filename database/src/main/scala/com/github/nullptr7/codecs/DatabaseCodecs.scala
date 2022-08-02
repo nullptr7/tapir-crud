@@ -17,12 +17,10 @@ object DatabaseCodecs {
     uuid.imap[AddressId](AddressId)(_.value)
 
   lazy val dbToAddressDecoder: Decoder[Address] =
-    (addressIdCodec.asDecoder ~ text ~ text ~ text ~ text).map {
-      case id ~ street ~ city ~ state ~ zip =>
-        Address(id, street, city, state, zip)
+    (addressIdCodec.asDecoder ~ text ~ text ~ text ~ text).map { case id ~ street ~ city ~ state ~ zip =>
+      Address(id, street, city, state, zip)
     }
 
-  lazy val dbToEmployeeDecoder: Decoder[
-    ((((Int, String), Int), Double), Address)] = int4 ~ text ~ int4 ~ float8 ~ dbToAddressDecoder
+  lazy val dbToEmployeeDecoder: Decoder[((((Int, String), Int), Double), Address)] = int4 ~ text ~ int4 ~ float8 ~ dbToAddressDecoder
 
 }

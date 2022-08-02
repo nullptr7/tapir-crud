@@ -19,18 +19,16 @@ import configurations.types._
 
 abstract class RoutingModule[F[_]: Async: std.Console: Trace: Network] {
 
-  final private[modules] def withRoutes(
-      dbConfig: DatabaseConfig): Resource[F, HttpApp[F]] =
+  final private[modules] def withRoutes(dbConfig: DatabaseConfig): Resource[F, HttpApp[F]] =
     for {
-      session <- DatabaseSession[F].make(dbConfig)
+      session     <- DatabaseSession[F].make(dbConfig)
       serverLogic <- Resource.eval(initServiceLogic(session))
-      routes <- Routes.make[F](serverLogic)
+      routes      <- Routes.make[F](serverLogic)
     } yield routes
 
-  private[this] def initServiceLogic(
-      session: Session[F]): F[List[ServerEndpoint[Any, F]]] = {
+  private[this] def initServiceLogic(session: Session[F]): F[List[ServerEndpoint[Any, F]]] = {
     lazy val employeeRepo = EmployeeRepository(session)
-    lazy val addressRepo = AddressRepository(session)
+    lazy val addressRepo  = AddressRepository(session)
     lazy val serviceLogic: ServiceLogic[F] =
       new ServiceLogic[F](employeeRepo, addressRepo)
     serviceLogic.make

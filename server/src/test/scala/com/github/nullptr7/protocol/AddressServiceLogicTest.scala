@@ -18,8 +18,8 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import io.circe.parser._
 import io.circe.syntax.EncoderOps
 
-import models.codecs.{addressCodec, createAddressCodec, addressIdCodec}
-import models.{Address, CreateAddress, AddressId}
+import models.codecs.{addressCodec, addressIdCodec, createAddressCodec}
+import models.{Address, AddressId, CreateAddress}
 import exceptions.ErrorResponse._
 import common.BaseTest
 import mocks.data._

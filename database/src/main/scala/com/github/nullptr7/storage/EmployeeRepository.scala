@@ -35,9 +35,8 @@ object EmployeeRepository {
 
         session
           .execute(empQuery)
-          .map(_.map {
-            case id ~ name ~ age ~ salary ~ address =>
-              Employee(id, name, age, salary, address)
+          .map(_.map { case id ~ name ~ age ~ salary ~ address =>
+            Employee(id, name, age, salary, address)
           })
           .attemptTap {
             case Left(error)  => Concurrent[F].raiseError[List[Employee]](error)
@@ -58,9 +57,8 @@ object EmployeeRepository {
         session
           .prepare(empQueryById)
           .use(_.option(id))
-          .map(_.map {
-            case id ~ name ~ age ~ salary ~ address =>
-              Employee(id, name, age, salary, address)
+          .map(_.map { case id ~ name ~ age ~ salary ~ address =>
+            Employee(id, name, age, salary, address)
           })
       }
 

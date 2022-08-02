@@ -40,9 +40,7 @@ object AddressRepository {
         session
           .prepare(f)
           .use(
-            _.stream(id, 32)
-              .compile
-              .toList
+            _.stream(id, 32).compile.toList
               .map(_.headOption)
           )
       }
@@ -61,9 +59,7 @@ object AddressRepository {
         session
           .prepare(f)
           .use(
-            _.stream(pincode, 32)
-              .compile
-              .toList
+            _.stream(pincode, 32).compile.toList
               .map(_.headOption)
           )
       }
@@ -74,8 +70,9 @@ object AddressRepository {
           sql"""
           INSERT INTO ADDRESS (ID, STREET, CITY, STATE, ZIP)
           VALUES (${addressIdCodec.asEncoder}, $text, $text, $text, $text)          
-        """.command.contramap { case id ~ i =>
-            id ~ i.street ~ i.city ~ i.state ~ i.zip
+        """.command.contramap {
+            case id ~ i =>
+              id ~ i.street ~ i.city ~ i.state ~ i.zip
           }
 
         session

@@ -5,19 +5,17 @@ import sttp.tapir.{DecodeResult, _}
 
 sealed trait AuthMode
 
-case object Admin extends AuthMode
-case object NonAdmin extends AuthMode
-case object InvalidMode extends AuthMode
+case object Admin           extends AuthMode
+case object NonAdmin        extends AuthMode
+case object InvalidMode     extends AuthMode
 case object MissingAuthMode extends AuthMode
 
 object AuthMode {
 
-  implicit private[protocol] def authModeFromListStringCodec
-    : Codec[List[String], AuthMode, CodecFormat.TextPlain] =
+  implicit private[protocol] def authModeFromListStringCodec: Codec[List[String], AuthMode, CodecFormat.TextPlain] =
     Codec.listHead[String, AuthMode, CodecFormat.TextPlain]
 
-  implicit private[this] lazy val authModeFromStringCodec
-    : Codec[String, AuthMode, CodecFormat.TextPlain] =
+  implicit private[this] lazy val authModeFromStringCodec: Codec[String, AuthMode, CodecFormat.TextPlain] =
     Codec.string.mapDecode(decode)(encode)
 
   private[this] def decode(authModeStr: String): DecodeResult[AuthMode] =

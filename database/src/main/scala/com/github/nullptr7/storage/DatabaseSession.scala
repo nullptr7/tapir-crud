@@ -26,9 +26,9 @@ object DatabaseSession {
       def make(config: DatabaseConfig): Resource[F, Session[F]] =
         Session
           .single[F](
-            host = config.host.value,
-            port = config.port.value,
-            user = config.user,
+            host     = config.host.value,
+            port     = config.port.value,
+            user     = config.user,
             database = config.database,
             password = Option(config.password.value)
           )

@@ -10,40 +10,34 @@ import storage.{AddressRepository, EmployeeRepository}
 import models.AddressId
 
 class ServiceLogic[F[_]: Async](
-    private[protocol] val employeeRepo: EmployeeRepository[F],
-    private[protocol] val addressRepo: AddressRepository[F]
+  private[protocol] val employeeRepo: EmployeeRepository[F],
+  private[protocol] val addressRepo:  AddressRepository[F]
 ) extends EmployeeContracts[F]
-    with AddressContracts[F] {
+  with AddressContracts[F] {
 
   import cats.implicits._
 
   private[protocol] lazy val allEmployeeEndpoint: ServerEndpointF =
-    allEmployeesEP.serverLogicRecoverErrors[F](
-      handle(_)(employeeRepo.findAllEmployees))
+    allEmployeesEP.serverLogicRecoverErrors[F](handle(_)(employeeRepo.findAllEmployees))
 
   private[protocol] lazy val empByIdEndpoint: ServerEndpointF =
-    employeeEP.serverLogicRecoverErrors[F] {
-      case (authMode, id) =>
-        handle(authMode)(employeeRepo.findById(id.toLong))
+    employeeEP.serverLogicRecoverErrors[F] { case (authMode, id) =>
+      handle(authMode)(employeeRepo.findById(id.toLong))
     }
 
   private[protocol] lazy val addressByIdEndpoint: ServerEndpointF =
-    addressById.serverLogicRecoverErrors[F] {
-      case (authMode, id) =>
-        handle(authMode)(
-          addressRepo.findAddressById(AddressId(UUID.fromString(id))))
+    addressById.serverLogicRecoverErrors[F] { case (authMode, id) =>
+      handle(authMode)(addressRepo.findAddressById(AddressId(UUID.fromString(id))))
     }
 
   private[protocol] lazy val addressByZipEndpoint: ServerEndpointF =
-    addressByPincode.serverLogicRecoverErrors[F] {
-      case (authMode, pincode) =>
-        handle(authMode)(addressRepo.findAddressByZip(pincode))
+    addressByPincode.serverLogicRecoverErrors[F] { case (authMode, pincode) =>
+      handle(authMode)(addressRepo.findAddressByZip(pincode))
     }
 
   private[protocol] lazy val addAddressEndpoint: ServerEndpointF =
-    addAddress.serverLogicRecoverErrors[F] {
-      case (authMode, address) =>
-        handle(authMode)(addressRepo.addAddress(address))
+    addAddress.serverLogicRecoverErrors[F] { case (authMode, address) =>
+      handle(authMode)(addressRepo.addAddress(address))
     }
 
   override val make: F[List[ServerEndpointF]] =
@@ -57,7 +51,7 @@ class ServiceLogic[F[_]: Async](
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =
     authMode match {
-      case Admin =>
+      case Admin           =>
         fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
       case MissingAuthMode => Async[F].raiseError[O](MissingAuthException)
       case NonAdmin        => Async[F].raiseError[O](UnauthorizedAuthException)

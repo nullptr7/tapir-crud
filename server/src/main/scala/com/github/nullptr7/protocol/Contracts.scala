@@ -6,7 +6,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait Contracts[F[_]] {
 
-  protected[protocol] final type ServerEndpointF = ServerEndpoint[Any, F]
+  final protected[protocol] type ServerEndpointF = ServerEndpoint[Any, F]
 
   protected[protocol] lazy val base =
     infallibleEndpoint
