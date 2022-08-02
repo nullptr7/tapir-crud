@@ -7,9 +7,9 @@ import io.circe.generic.semiauto.deriveCodec
 
 import monocle.Iso
 
-package models {
+import optics.IsUUID
 
-  import com.github.nullptr7.optics.IsUUID
+package models {
 
   final case class Employee(
     id:      Int,
