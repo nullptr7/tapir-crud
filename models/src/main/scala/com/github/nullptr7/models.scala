@@ -1,12 +1,15 @@
 package com.github.nullptr7
 
+import java.util.UUID
+
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
+import monocle.Iso
+
 package models {
 
-  import java.util.UUID
-  import monocle.Iso
+  import com.github.nullptr7.optics.IsUUID
 
   final case class Employee(
     id:      Int,
@@ -18,11 +21,9 @@ package models {
 
   final case class AddressId(value: UUID) extends AnyVal
 
-  object AddressId {
+  object implicits {
 
-    import optics.IsUUID
-
-    implicit val addressIdToUUID: IsUUID[AddressId] = new IsUUID[AddressId] {
+    implicit object AddressIdIso extends IsUUID[AddressId] {
 
       def _uuid: Iso[UUID, AddressId] = Iso[UUID, AddressId](AddressId(_))(_.value)
     }

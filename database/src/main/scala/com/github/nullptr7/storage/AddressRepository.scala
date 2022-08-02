@@ -6,7 +6,8 @@ import java.util.UUID
 import cats.effect._
 import cats.syntax.all._
 
-import models.{Address, AddressId, CreateAddress}
+import models.{Address, CreateAddress, AddressId}
+import models.implicits.AddressIdIso
 import optics.ID
 
 trait AddressRepository[F[_]] {

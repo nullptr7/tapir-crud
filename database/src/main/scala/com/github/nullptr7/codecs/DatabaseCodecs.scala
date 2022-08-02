@@ -4,7 +4,7 @@ package codecs
 import skunk._
 import skunk.codec.all._
 
-import com.github.nullptr7.models.AddressId
+import models.AddressId
 
 import models.Address
 
