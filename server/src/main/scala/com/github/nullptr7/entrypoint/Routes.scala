@@ -21,22 +21,24 @@ import exceptions.ErrorResponse.GenericException
 
 object Routes {
 
-  private[entrypoint] def make[F[_]: Async](serverLogic: List[ServerEndpoint[Any, F]]): Resource[F, HttpApp[F]] =
+  private[entrypoint] def make[F[_]: Async](
+      serverLogic: List[ServerEndpoint[Any, F]]): Resource[F, HttpApp[F]] =
     Resource.pure {
       Http4sServerInterpreter[F](
         Http4sServerOptions
           .customiseInterceptors[F]
           .exceptionHandler {
-            ExceptionHandler[F](ex =>
-              Option
-                .apply[ValuedEndpointOutput[_]](
-                  ValuedEndpointOutput(
-                    jsonBody[GenericException].and(statusCode(StatusCode.InternalServerError)),
-                    GenericException(ex.e.getMessage)
+            ExceptionHandler[F](
+              ex =>
+                Option
+                  .apply[ValuedEndpointOutput[_]](
+                    ValuedEndpointOutput(
+                      jsonBody[GenericException].and(
+                        statusCode(StatusCode.InternalServerError)),
+                      GenericException(ex.e.getMessage)
+                    )
                   )
-                )
-                .pure[F]
-            )
+                  .pure[F])
           }
           .options
       ).toRoutes(serverLogic).orNotFound

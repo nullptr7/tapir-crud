@@ -20,19 +20,20 @@ object DatabaseSession {
 
   def apply[F[_]: DatabaseSession]: DatabaseSession[F] = implicitly
 
-  implicit def withConfig[F[_]: Async: Console: Trace: Network] = new DatabaseSession[F] {
+  implicit def withConfig[F[_]: Async: Console: Trace: Network] =
+    new DatabaseSession[F] {
 
-    def make(config: DatabaseConfig): Resource[F, Session[F]] =
-      Session
-        .single[F](
-          host     = config.host.value,
-          port     = config.port.value,
-          user     = config.user,
-          database = config.database,
-          password = Option(config.password.value)
-        )
+      def make(config: DatabaseConfig): Resource[F, Session[F]] =
+        Session
+          .single[F](
+            host = config.host.value,
+            port = config.port.value,
+            user = config.user,
+            database = config.database,
+            password = Option(config.password.value)
+          )
 
-  }
+    }
 
   def create(config: DatabaseConfig) = ???
 

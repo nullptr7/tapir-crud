@@ -23,16 +23,19 @@ import configurations._
 import helpers.ConfigLoader
 import types.ConfigType._
 
-abstract class BlazeServerModule[F[_]: Async: std.Console: Network: Trace] extends RoutingModule[F] {
+abstract class BlazeServerModule[F[_]: Async: std.Console: Network: Trace]
+    extends RoutingModule[F] {
 
   final protected[entrypoint] lazy val server: Resource[F, Server] =
     for {
-      res    <- loadResource
+      res <- loadResource
       routes <- withRoutes(res.databaseConfig)
-      serve  <- withServer(routes, res.serverConfig)
+      serve <- withServer(routes, res.serverConfig)
     } yield serve
 
-  final private[this] def withServer(routes: HttpApp[F], serverConfig: ServerConfig): Resource[F, Server] =
+  final private[this] def withServer(
+      routes: HttpApp[F],
+      serverConfig: ServerConfig): Resource[F, Server] =
     BlazeServerBuilder[F]
       .bindHttp(serverConfig.port.value, serverConfig.host.value)
       .withHttpApp(routes)

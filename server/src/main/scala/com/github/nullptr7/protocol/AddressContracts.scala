@@ -12,24 +12,21 @@ import exceptions.ErrorResponse._
 trait AddressContracts[F[_]] extends Contracts[F] {
 
   lazy val addressById =
-    base
-      .get
+    base.get
       .in("address")
       .in(query[String]("id"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
 
   lazy val addressByPincode =
-    base
-      .get
+    base.get
       .in("address")
       .in(query[String]("pincode"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
 
   lazy val addAddress =
-    base
-      .post
+    base.post
       .in("address")
       .in(jsonBody[CreateAddress])
       .out(jsonBody[AddressId])

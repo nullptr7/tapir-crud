@@ -1,18 +1,16 @@
 package com.github.nullptr7
 package storage
 
-import java.util.UUID
-
 import cats.effect._
 import cats.syntax.all._
 
-import models.{Address, CreateAddress, AddressId}
+import models.{Address, AddressId, CreateAddress}
 import models.implicits.AddressIdIso
 import optics.ID
 
 trait AddressRepository[F[_]] {
 
-  def findAddressById(id: UUID): F[Option[Address]]
+  def findAddressById(id: AddressId): F[Option[Address]]
 
   def findAddressByZip(pincode: String): F[Option[Address]]
 
@@ -27,31 +25,32 @@ object AddressRepository {
 
   import codecs.DatabaseCodecs._
 
-  def apply[F[_]: Concurrent](session: Session[F]): AddressRepository[F] = new AddressRepository[F] {
+  def apply[F[_]: Concurrent](session: Session[F]): AddressRepository[F] =
+    new AddressRepository[F] {
 
-    override def findAddressById(id: UUID): F[Option[Address]] = {
+      override def findAddressById(id: AddressId): F[Option[Address]] = {
 
-      val f: Query[UUID, Address] =
-        sql"""
+        val f: Query[AddressId, Address] =
+          sql"""
               SELECT id, street, city, state, zip 
               FROM ADDRESS
-              WHERE ID = $uuid
+              WHERE ID = ${addressIdCodec.asEncoder}
             """.query(dbToAddressDecoder)
 
-      session
-        .prepare(f)
-        .use(
-          _.stream(id, 32)
-            .compile
-            .toList
-            .map(_.headOption)
-        )
-    }
+        session
+          .prepare(f)
+          .use(
+            _.stream(id, 32)
+              .compile
+              .toList
+              .map(_.headOption)
+          )
+      }
 
-    override def findAddressByZip(pincode: String): F[Option[Address]] = {
+      override def findAddressByZip(pincode: String): F[Option[Address]] = {
 
-      val f: Query[String, Address] =
-        sql"""
+        val f: Query[String, Address] =
+          sql"""
               SELECT ID, STREET, CITY, STATE, ZIP 
               FROM ADDRESS
               WHERE ZIP = $text
@@ -59,35 +58,35 @@ object AddressRepository {
 
 //      session.execute(f).map(_.headOption)
 
-      session
-        .prepare(f)
-        .use(
-          _.stream(pincode, 32)
-            .compile
-            .toList
-            .map(_.headOption)
-        )
-    }
+        session
+          .prepare(f)
+          .use(
+            _.stream(pincode, 32)
+              .compile
+              .toList
+              .map(_.headOption)
+          )
+      }
 
-    override def addAddress(address: CreateAddress): F[AddressId] = {
+      override def addAddress(address: CreateAddress): F[AddressId] = {
 
-      val insertAddressQuery: Command[AddressId ~ CreateAddress] =
-        sql"""
+        val insertAddressQuery: Command[AddressId ~ CreateAddress] =
+          sql"""
           INSERT INTO ADDRESS (ID, STREET, CITY, STATE, ZIP)
-          VALUES ($addressIdEncoder, $text, $text, $text, $text)          
+          VALUES (${addressIdCodec.asEncoder}, $text, $text, $text, $text)          
         """.command.contramap { case id ~ i =>
-          id ~ i.street ~ i.city ~ i.state ~ i.zip
-        }
-
-      session
-        .prepare(insertAddressQuery)
-        .use { cmd =>
-          ID.make[F, AddressId].flatMap { id =>
-            cmd.execute(id ~ address).as(id)
+            id ~ i.street ~ i.city ~ i.state ~ i.zip
           }
-        }
-    }
 
-  }
+        session
+          .prepare(insertAddressQuery)
+          .use { cmd =>
+            ID.make[F, AddressId].flatMap { id =>
+              cmd.execute(id ~ address).as(id)
+            }
+          }
+      }
+
+    }
 
 }

@@ -13,16 +13,19 @@ import ErrorResponse._
 
 trait EmployeeContracts[F[_]] extends Contracts[F] {
 
-  protected[protocol] lazy val allEmployeesEP: Endpoint[Unit, AuthMode, ServiceResponseException, List[Employee], Any] =
-    base
-      .get
+  protected[protocol] lazy val allEmployeesEP
+    : Endpoint[Unit, AuthMode, ServiceResponseException, List[Employee], Any] =
+    base.get
       .in("get" / "all")
       .out(jsonBody[List[Employee]])
       .errorOut(jsonBody[ServiceResponseException])
 
-  protected[protocol] lazy val employeeEP: Endpoint[Unit, (AuthMode, String), ServiceResponseException, Option[Employee], Any] =
-    base
-      .get
+  protected[protocol] lazy val employeeEP: Endpoint[Unit,
+                                                    (AuthMode, String),
+                                                    ServiceResponseException,
+                                                    Option[Employee],
+                                                    Any] =
+    base.get
       .in("get" / "employee")
       .in(query[String]("id"))
       .out(jsonBody[Option[Employee]])
@@ -37,8 +40,7 @@ trait EmployeeContracts[F[_]] extends Contracts[F] {
 //      )
 
   protected[protocol] lazy val addEmployeeEP =
-    base
-      .post
+    base.post
       .in("add")
       .in(header[AuthMode]("X-AuthMode"))
 
