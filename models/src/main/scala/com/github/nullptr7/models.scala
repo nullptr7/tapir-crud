@@ -11,8 +11,13 @@ import optics.IsUUID
 
 package models {
 
+  final case class EmployeeCode(value: UUID) extends AnyVal
+
+  final case class EmployeeId(value: Int) extends AnyVal
+
   final case class Employee(
-    id:      Int,
+    id:      EmployeeId,
+    code:    EmployeeCode,
     name:    String,
     age:     Int,
     salary:  Double,
@@ -21,7 +26,13 @@ package models {
 
   final case class AddressId(value: UUID) extends AnyVal
 
-  object implicits {
+  final object implicits {
+
+    implicit object EmployeeCodeIso extends IsUUID[EmployeeCode] {
+
+      def _uuid: Iso[UUID, EmployeeCode] =
+        Iso[UUID, EmployeeCode](EmployeeCode(_))(_.value)
+    }
 
     implicit object AddressIdIso extends IsUUID[AddressId] {
 
@@ -46,12 +57,13 @@ package models {
     zip:    String
   )
 
-  object codecs {
+  final object codecs {
 
+    implicit val employeeCodeCodec:  Codec[EmployeeCode]  = deriveCodec[EmployeeCode]
+    implicit val employeeIdCodec:    Codec[EmployeeId]    = deriveCodec[EmployeeId]
     implicit val employeeCodec:      Codec[Employee]      = deriveCodec[Employee]
     implicit val addressCodec:       Codec[Address]       = deriveCodec[Address]
-    implicit val createAddressCodec: Codec[CreateAddress] =
-      deriveCodec[CreateAddress]
+    implicit val createAddressCodec: Codec[CreateAddress] = deriveCodec[CreateAddress]
     implicit val addressIdCodec:     Codec[AddressId]     = deriveCodec[AddressId]
   }
 

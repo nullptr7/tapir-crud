@@ -88,7 +88,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
 
     when(serviceLogic.employeeRepo.findById(1))
-      .thenReturn(IO.pure(allEmployees.find(_.id == 1)))
+      .thenReturn(IO.pure(allEmployees.find(_.id == employeeId1)))
     // when
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/employee?id=1")
@@ -99,7 +99,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     // then
     response.unsafeRunSync().body shouldBe Right(
       Some(
-        Employee(1, "John", 12, 1000.0, Address(addressId, "Main Street", "Anytown", "CA", "12345"))
+        Employee(employeeId1, employeeCode1, "John", 12, 1000.0, Address(addressId, "Main Street", "Anytown", "CA", "12345"))
       )
     )
 

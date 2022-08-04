@@ -4,7 +4,7 @@ package storage
 import cats.effect._
 import cats.implicits._
 
-import models.{Address, Employee}
+import models.Employee
 
 trait EmployeeRepository[F[_]] {
 
@@ -26,18 +26,15 @@ object EmployeeRepository {
 
       override def findAllEmployees: F[List[Employee]] = {
 
-        val empQuery: Query[Void, Int ~ String ~ Int ~ Double ~ Address] =
+        val empQuery: Query[Void, Employee] =
           sql"""
-              SELECT e.id, e.name, e.age, e.salary, a.id, a.street, a.city, a.state, a.zip 
+              SELECT e.id, e.code, e.name, e.age, e.salary, a.id, a.street, a.city, a.state, a.zip 
               FROM EMPLOYEE e, ADDRESS a
               WHERE e.address = a.id
             """.query(dbToEmployeeDecoder)
 
         session
           .execute(empQuery)
-          .map(_.map { case id ~ name ~ age ~ salary ~ address =>
-            Employee(id, name, age, salary, address)
-          })
           .attemptTap {
             case Left(error)  => Concurrent[F].raiseError[List[Employee]](error)
             case Right(value) => value.pure[F]
@@ -47,7 +44,7 @@ object EmployeeRepository {
       override def findById(id: Long): F[Option[Employee]] = {
         import skunk.codec.all._
 
-        val empQueryById: Query[Long, Int ~ String ~ Int ~ Double ~ Address] =
+        val empQueryById: Query[Long, Employee] =
           sql"""
              SELECT e.id, e.name, e.age, e.salary, a.id, a.street, a.city, a.state, a.zip
              FROM EMPLOYEE e, ADDRESS a
@@ -57,9 +54,6 @@ object EmployeeRepository {
         session
           .prepare(empQueryById)
           .use(_.option(id))
-          .map(_.map { case id ~ name ~ age ~ salary ~ address =>
-            Employee(id, name, age, salary, address)
-          })
       }
 
     }

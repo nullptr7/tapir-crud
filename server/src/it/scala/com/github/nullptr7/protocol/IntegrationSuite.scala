@@ -28,7 +28,9 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
   implicit override val console:    std.Console[IO] = IO.consoleForIO
   implicit override val network:    Network[IO]     = Network.forAsync[IO]
 
-  private val addressId: AddressId = AddressId(UUID.fromString("20d88c49-01e9-40d0-b568-982100e676ba"))
+  private val employeeId1:   EmployeeId   = EmployeeId(1)
+  private val employeeCode1: EmployeeCode = EmployeeCode(UUID.fromString("75b107cb-2bef-431f-8b33-b2074d51bd08"))
+  private val addressId:     AddressId    = AddressId(UUID.fromString("20d88c49-01e9-40d0-b568-982100e676ba"))
 
   override val resource: Resource[IO, ServiceLogic[IO]] =
     for {
@@ -57,7 +59,8 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
   }.map { resp =>
     lazy val allEmployees: List[Employee] = List(
       Employee(
-        id      = 1,
+        id      = employeeId1,
+        code    = employeeCode1,
         name    = "Paul",
         age     = 32,
         salary  = 20000.0,

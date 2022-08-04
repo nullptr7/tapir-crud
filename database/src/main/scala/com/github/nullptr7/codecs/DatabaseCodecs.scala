@@ -4,8 +4,7 @@ package codecs
 import skunk._
 import skunk.codec.all._
 
-import models.AddressId
-import models.Address
+import models.{Address, AddressId, Employee, EmployeeCode, EmployeeId}
 
 object DatabaseCodecs {
 
@@ -21,6 +20,15 @@ object DatabaseCodecs {
       Address(id, street, city, state, zip)
     }
 
-  lazy val dbToEmployeeDecoder: Decoder[((((Int, String), Int), Double), Address)] = int4 ~ text ~ int4 ~ float8 ~ dbToAddressDecoder
+  lazy val employeeCodeCodec: Codec[EmployeeCode] =
+    uuid.imap[EmployeeCode](EmployeeCode)(_.value)
+
+  lazy val employeeIdCodec: Codec[EmployeeId] = int4.imap(EmployeeId)(_.value)
+
+  lazy val dbToEmployeeDecoder: Decoder[Employee] =
+    (employeeIdCodec.asDecoder ~ employeeCodeCodec ~ text ~ int4 ~ float8 ~ dbToAddressDecoder).map {
+      case id ~ code ~ name ~ age ~ salary ~ address =>
+        Employee(id, code, name, age, salary, address)
+    }
 
 }
