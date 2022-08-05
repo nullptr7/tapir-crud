@@ -7,7 +7,6 @@ import sttp.tapir.json.circe._
 
 import models._
 import models.codecs._
-import AuthMode._
 import exceptions._
 import ErrorResponse._
 
@@ -39,7 +38,9 @@ trait EmployeeContracts[F[_]] extends Contracts[F] {
   protected[protocol] lazy val addEmployeeEP =
     base
       .post
-      .in("add")
-      .in(header[AuthMode]("X-AuthMode"))
+      .in("add" / "employee")
+      .in(jsonBody[CreateEmployee])
+      .out(jsonBody[EmployeeId])
+      .errorOut(jsonBody[ServiceResponseException])
 
 }

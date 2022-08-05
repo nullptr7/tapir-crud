@@ -17,6 +17,11 @@ class ServiceLogic[F[_]: Async](
 
   import cats.implicits._
 
+  private[protocol] lazy val addEmployeeEndpoint: ServerEndpointF =
+    addEmployeeEP.serverLogicRecoverErrors[F] { case(authMode, employeeBody) =>
+      handle(authMode)(employeeRepo.addEmployee(employeeBody))
+    }
+
   private[protocol] lazy val allEmployeeEndpoint: ServerEndpointF =
     allEmployeesEP.serverLogicRecoverErrors[F](handle(_)(employeeRepo.findAllEmployees))
 
@@ -46,7 +51,8 @@ class ServiceLogic[F[_]: Async](
       empByIdEndpoint,
       addressByIdEndpoint,
       addressByZipEndpoint,
-      addAddressEndpoint
+      addAddressEndpoint,
+      addEmployeeEndpoint
     ).pure[F]
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =

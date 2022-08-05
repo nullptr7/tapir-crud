@@ -15,6 +15,13 @@ package models {
 
   final case class EmployeeId(value: Int) extends AnyVal
 
+  final case class CreateEmployee(
+    name:    String,
+    age:     Int,
+    salary:  Double,
+    address: CreateAddress
+  )
+
   final case class Employee(
     id:      EmployeeId,
     code:    EmployeeCode,
@@ -31,13 +38,13 @@ package models {
     implicit object EmployeeCodeIso extends IsUUID[EmployeeCode] {
 
       def _uuid: Iso[UUID, EmployeeCode] =
-        Iso[UUID, EmployeeCode](EmployeeCode(_))(_.value)
+        Iso[UUID, EmployeeCode](EmployeeCode.apply)(_.value)
     }
 
     implicit object AddressIdIso extends IsUUID[AddressId] {
 
       def _uuid: Iso[UUID, AddressId] =
-        Iso[UUID, AddressId](AddressId(_))(_.value)
+        Iso[UUID, AddressId](AddressId.apply)(_.value)
     }
 
   }
@@ -59,12 +66,13 @@ package models {
 
   final object codecs {
 
-    implicit val employeeCodeCodec:  Codec[EmployeeCode]  = deriveCodec[EmployeeCode]
-    implicit val employeeIdCodec:    Codec[EmployeeId]    = deriveCodec[EmployeeId]
-    implicit val employeeCodec:      Codec[Employee]      = deriveCodec[Employee]
-    implicit val addressCodec:       Codec[Address]       = deriveCodec[Address]
-    implicit val createAddressCodec: Codec[CreateAddress] = deriveCodec[CreateAddress]
-    implicit val addressIdCodec:     Codec[AddressId]     = deriveCodec[AddressId]
+    implicit val employeeCodeCodec:   Codec[EmployeeCode]   = deriveCodec[EmployeeCode]
+    implicit val createEmployeeCodec: Codec[CreateEmployee] = deriveCodec[CreateEmployee]
+    implicit val employeeIdCodec:     Codec[EmployeeId]     = deriveCodec[EmployeeId]
+    implicit val employeeCodec:       Codec[Employee]       = deriveCodec[Employee]
+    implicit val addressCodec:        Codec[Address]        = deriveCodec[Address]
+    implicit val createAddressCodec:  Codec[CreateAddress]  = deriveCodec[CreateAddress]
+    implicit val addressIdCodec:      Codec[AddressId]      = deriveCodec[AddressId]
   }
 
 }

@@ -2,15 +2,17 @@ package com.github.nullptr7
 package storage
 
 import cats.effect._
-import cats.implicits._
 
-import models.Employee
+import models.{CreateEmployee, Employee, EmployeeId}
+import optics.ID
 
 trait EmployeeRepository[F[_]] {
 
   def findAllEmployees: F[List[Employee]]
 
   def findById(id: Long): F[Option[Employee]]
+
+  def addEmployee(employee: CreateEmployee): F[EmployeeId]
 
 }
 
@@ -19,7 +21,12 @@ object EmployeeRepository {
   import skunk._
   import skunk.implicits._
 
-  import codecs.DatabaseCodecs.dbToEmployeeDecoder
+  import models.{AddressId, CreateAddress, CreateEmployee, Employee, EmployeeCode, EmployeeId}
+  import codecs.DatabaseCodecs.{addressIdCodec, dbToEmployeeDecoder, employeeCodeCodec, employeeIdCodec}
+
+  import skunk.codec.all._
+  import models.implicits.{AddressIdIso, EmployeeCodeIso}
+  import cats.implicits._
 
   def apply[F[_]: Concurrent](session: Session[F]): EmployeeRepository[F] =
     new EmployeeRepository[F] {
@@ -54,6 +61,74 @@ object EmployeeRepository {
         session
           .prepare(empQueryById)
           .use(_.option(id))
+      }
+
+      override def addEmployee(employee: CreateEmployee): F[EmployeeId] = {
+
+        val addEmployeeRes = for {
+          totalEmployees <- fetchTotalEmployeeHandler()
+          addressId      <- addAddressHandler(employee.address)
+          employeeId     <- addEmployeeHandler(employee, totalEmployees, addressId)
+        } yield employeeId
+
+        addEmployeeRes.use(_.pure[F])
+
+      }
+
+      private def addEmployeeHandler(employee: CreateEmployee, employeeId: EmployeeId, addressId: AddressId): Resource[F, EmployeeId] = {
+        val addEmployee: Command[EmployeeId ~ EmployeeCode ~ String ~ Int ~ Double ~ AddressId] =
+          sql"""
+            INSERT INTO EMPLOYEE (ID, CODE,NAME, AGE, SALARY, ADDRESS)
+            VALUES (
+                ${employeeIdCodec.asEncoder}, 
+                ${employeeCodeCodec.asEncoder},
+                $varchar,
+                $int4,
+                $float8,
+                ${addressIdCodec.asEncoder}
+              )
+            """.command
+
+        session
+          .prepare(addEmployee)
+          .evalMap { cmd =>
+            ID.make[F, EmployeeCode].flatMap { code =>
+              cmd.execute(employeeId ~ code ~ employee.name ~ employee.age ~ employee.salary ~ addressId).as(employeeId)
+            }
+          }
+
+      }
+
+      private def fetchTotalEmployeeHandler(): Resource[F, EmployeeId] = {
+        val employeeCount: Query[Void, Int] =
+          sql"""SELECT ID FROM EMPLOYEE""".query(int4)
+
+        Resource.eval(
+          session
+            .execute(employeeCount)
+            .map(_.sorted.last + 1)
+            .map(EmployeeId)
+        )
+
+      }
+
+      private def addAddressHandler(address: CreateAddress): Resource[F, AddressId] = {
+
+        val insertAddressQuery: Command[AddressId ~ CreateAddress] =
+          sql"""
+              INSERT INTO ADDRESS (ID, STREET, CITY, STATE, ZIP)
+              VALUES (${addressIdCodec.asEncoder}, $text, $text, $text, $text)          
+             """.command.contramap { case id ~ i =>
+            id ~ i.street ~ i.city ~ i.state ~ i.zip
+          }
+
+        session
+          .prepare(insertAddressQuery)
+          .evalMap { cmd =>
+            ID.make[F, AddressId].flatMap { id =>
+              cmd.execute(id ~ address).as(id)
+            }
+          }
       }
 
     }
