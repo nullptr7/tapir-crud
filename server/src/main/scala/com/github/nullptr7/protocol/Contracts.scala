@@ -1,8 +1,11 @@
 package com.github.nullptr7
 package protocol
 
+import cats.effect.Resource
+
 import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint
+
 
 trait Contracts[F[_]] {
 
@@ -13,5 +16,5 @@ trait Contracts[F[_]] {
       .in("employees")
       .in(header[AuthMode]("X-AuthMode").default(MissingAuthMode))
 
-  protected[protocol] val make: F[List[ServerEndpointF]]
+  protected[protocol] val make: Resource[F, List[ServerEndpointF]]
 }

@@ -3,7 +3,7 @@ package protocol
 
 import java.util.UUID
 
-import cats.effect.Async
+import cats.effect.{Async, Resource}
 
 import exceptions.ErrorResponse._
 import storage.{AddressRepository, EmployeeRepository}
@@ -18,7 +18,7 @@ class ServiceLogic[F[_]: Async](
   import cats.implicits._
 
   private[protocol] lazy val addEmployeeEndpoint: ServerEndpointF =
-    addEmployeeEP.serverLogicRecoverErrors[F] { case(authMode, employeeBody) =>
+    addEmployeeEP.serverLogicRecoverErrors[F] { case (authMode, employeeBody) =>
       handle(authMode)(employeeRepo.addEmployee(employeeBody))
     }
 
@@ -45,15 +45,17 @@ class ServiceLogic[F[_]: Async](
       handle(authMode)(addressRepo.addAddress(address))
     }
 
-  override val make: F[List[ServerEndpointF]] =
-    List(
-      allEmployeeEndpoint,
-      empByIdEndpoint,
-      addressByIdEndpoint,
-      addressByZipEndpoint,
-      addAddressEndpoint,
-      addEmployeeEndpoint
-    ).pure[F]
+  override val make: Resource[F, List[ServerEndpointF]] =
+    Resource.pure(
+      List(
+        allEmployeeEndpoint,
+        empByIdEndpoint,
+        addressByIdEndpoint,
+        addressByZipEndpoint,
+        addAddressEndpoint,
+        addEmployeeEndpoint
+      )
+    )
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =
     authMode match {
