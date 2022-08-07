@@ -43,6 +43,38 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
                       )
     } yield serviceLogic
 
+  "Add New Employee should work" in withResource { rs =>
+    lazy val scott =
+      """
+        |{
+        | "name": "Scott",
+        | "age": 12,
+        | "salary": 10.0,
+        | "address": {
+        |   "street": "Street1",
+        |   "city": "City1",
+        |   "state": "State1",
+        |   "zip": "1234567"
+        | }
+        |}
+        |""".stripMargin
+
+    lazy val addEmployeeEndpointStub =
+      TapirStubInterpreter[IO, Either[String, EmployeeCode]](SttpBackendStub(implicitly[MonadAsyncError[IO]]))
+        .whenServerEndpoint(rs.addEmployeeEndpoint)
+        .thenRunLogic()
+        .backend()
+
+    basicRequest
+      .post(uri"http://localhost:8080/employees/add/employee")
+      .body(scott)
+      .header("X-AuthMode", "admin")
+      .response(asJson[EmployeeId])
+      .send(addEmployeeEndpointStub)
+  }.map {
+    _.body must beRight
+  }
+
   "All Employee Endpoint should work" in withResource { serviceLogic =>
     lazy val allEmployeeEndpointStub =
       TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))
@@ -57,7 +89,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
       .send(allEmployeeEndpointStub)
 
   }.map { resp =>
-    lazy val allEmployees: List[Employee] = List(
+    lazy val paul =
       Employee(
         id      = employeeId1,
         code    = employeeCode1,
@@ -66,8 +98,9 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
         salary  = 20000.0,
         address = Address(addressId, "Some Street Name", "Some City", "Some State", "123456")
       )
-    )
-    resp.body must beRight(allEmployees)
+
+    resp.body must beRight
+    resp.body.toOption.get should contain(paul)
   }
 
   "Address Service" should {

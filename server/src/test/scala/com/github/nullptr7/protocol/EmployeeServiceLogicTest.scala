@@ -14,6 +14,7 @@ import sttp.monad.MonadAsyncError
 import sttp.tapir.server.stub.TapirStubInterpreter
 
 import io.circe.parser._
+import io.circe.syntax.EncoderOps
 
 import models.codecs._
 import exceptions.ErrorResponse._
@@ -23,6 +24,7 @@ import common.BaseTest
 class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
 
   import serviceLogic._
+  import models._
 
   private lazy val allEmployeeEndpointStub =
     TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))
@@ -30,11 +32,15 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
       .thenRunLogic()
       .backend()
 
-  import models._
-
   private lazy val employeeByIdEndpointStub =
     TapirStubInterpreter[IO, Either[String, Option[Employee]]](SttpBackendStub(implicitly[MonadAsyncError[IO]]))
       .whenServerEndpoint(empByIdEndpoint)
+      .thenRunLogic()
+      .backend()
+
+  private lazy val addEmployeeEndpointStub =
+    TapirStubInterpreter[IO, Either[String, EmployeeCode]](SttpBackendStub(implicitly[MonadAsyncError[IO]]))
+      .whenServerEndpoint(addEmployeeEndpoint)
       .thenRunLogic()
       .backend()
 
@@ -148,6 +154,59 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
     inside(errorBody) { case Left(value) =>
       inside(decode[ServiceResponseException](value)) { case Right(value) =>
         value shouldBe InvalidAuthException
+      }
+    }
+  }
+
+  "Add Employee Endpoint with authMode header" should "work when admin and valid payload" in {
+
+    val scott = CreateEmployee("Scott", 12, 10.0, CreateAddress("Street1", "City1", "State1", "123456"))
+
+    when(
+      serviceLogic
+        .employeeRepo
+        .addEmployee(scott)
+    )
+      .thenReturn(IO.pure(EmployeeId(1)))
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/add/employee")
+      .body(scott.asJson.toString)
+      .header("X-AuthMode", "admin")
+      .response(asJson[EmployeeId])
+      .send(addEmployeeEndpointStub)
+
+    response.unsafeRunSync().body shouldBe Right(EmployeeId(1))
+  }
+
+  it should "fail when authMode header is nonadmin" in {
+
+    val badScott =
+      """
+        |{
+        | "name": "Scott",
+        | "age": 12,
+        | "salary": 10.0,
+        | "address": {
+        |   "street": "Street1",
+        |   "city": "City1",
+        |   "state": "State1",
+        |   "zip": "1234567"
+        | }
+        |}
+        |""".stripMargin
+
+    val response = basicRequest
+      .post(uri"http://localhost:8080/employees/add/employee")
+      .body(badScott)
+      .header("X-AuthMode", "nonadmin")
+      .send(addEmployeeEndpointStub)
+
+    val errorBody = response.unsafeRunSync().body
+
+    inside(errorBody) { case Left(value) =>
+      inside(decode[ServiceResponseException](value)) { case Right(value) =>
+        value shouldBe UnauthorizedAuthException
       }
     }
   }
