@@ -4,8 +4,11 @@ package protocol
 import java.util.UUID
 
 import org.mockito.MockitoSugar.when
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import cats.effect.IO
+import cats.effect.kernel.Async
 import cats.effect.unsafe.implicits.global
 
 import sttp.client3._
@@ -24,9 +27,12 @@ import exceptions.ErrorResponse._
 import common.BaseTest
 import mocks.data._
 
-class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper {
+class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   import serviceLogic._
+
+  implicit override protected def async:  Async[IO]  = IO.asyncForIO
+  implicit override protected def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   private lazy val addressByIdEndpointStub =
     TapirStubInterpreter(SttpBackendStub(implicitly[MonadAsyncError[IO]]))

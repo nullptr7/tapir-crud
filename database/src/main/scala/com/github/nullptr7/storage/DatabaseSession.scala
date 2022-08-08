@@ -20,7 +20,7 @@ object DatabaseSession {
 
   def apply[F[_]: DatabaseSession]: DatabaseSession[F] = implicitly
 
-  implicit def withConfig[F[_]: Async: Console: Trace: Network] =
+  implicit def withConfig[F[_]: Async: Console: Trace: Network]: DatabaseSession[F] =
     new DatabaseSession[F] {
 
       def make(config: DatabaseConfig): Resource[F, Session[F]] =
@@ -34,7 +34,5 @@ object DatabaseSession {
           )
 
     }
-
-  def create(config: DatabaseConfig) = ???
 
 }
