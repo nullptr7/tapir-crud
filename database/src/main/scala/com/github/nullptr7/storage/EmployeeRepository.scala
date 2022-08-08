@@ -20,10 +20,8 @@ object EmployeeRepository {
 
   import skunk._
   import skunk.implicits._
-
   import models.{AddressId, CreateAddress, CreateEmployee, Employee, EmployeeCode, EmployeeId}
   import codecs.DatabaseCodecs.{addressIdCodec, dbToEmployeeDecoder, employeeCodeCodec, employeeIdCodec}
-
   import skunk.codec.all._
   import models.implicits.{AddressIdIso, EmployeeCodeIso}
   import cats.implicits._
@@ -43,7 +41,7 @@ object EmployeeRepository {
         session
           .execute(empQuery)
           .attemptTap {
-            case Left(error)  => Concurrent[F].raiseError[List[Employee]](error)
+            case Left(error)  => error.raiseError[F, List[Employee]]
             case Right(value) => value.pure[F]
           }
       }

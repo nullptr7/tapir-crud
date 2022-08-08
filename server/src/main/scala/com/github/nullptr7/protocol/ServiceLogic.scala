@@ -64,9 +64,9 @@ class ServiceLogic[F[_]: Async: Logger](
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =
     logAuthModeRequest(authMode) *> (authMode match {
       case Admin           => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
-      case MissingAuthMode => Async[F].raiseError[O](MissingAuthException)
-      case NonAdmin        => Async[F].raiseError[O](UnauthorizedAuthException)
-      case InvalidMode     => Async[F].raiseError[O](InvalidAuthException)
+      case MissingAuthMode => MissingAuthException.raiseError[F, O]
+      case NonAdmin        => UnauthorizedAuthException.raiseError[F, O]
+      case InvalidMode     => InvalidAuthException.raiseError[F, O]
     })
 
 }
