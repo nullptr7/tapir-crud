@@ -10,7 +10,7 @@ import exceptions.DatabaseException
 
 abstract class Repository[F[_]: Logger] {
 
-  def logAndRaise(implicit ae: ApplicativeError[F, Throwable]): PartialFunction[Throwable, F[Unit]] = { case t: Throwable =>
+  final protected[storage] def logAndRaise(implicit ae: ApplicativeError[F, Throwable]): PartialFunction[Throwable, F[Unit]] = { case t: Throwable =>
     Logger[F].error(t.getMessage()) *> ae.raiseError[Unit](DatabaseException(t))
 
   }
