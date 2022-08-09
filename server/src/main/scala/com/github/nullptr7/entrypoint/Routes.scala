@@ -24,7 +24,7 @@ object Routes {
 
   private[entrypoint] def make[F[_]: Async: Logger](serverLogic: List[ServerEndpoint[Any, F]]): Resource[F, HttpApp[F]] = {
 
-    val defaultServerLog =
+    lazy val defaultServerLog =
       Http4sServerOptions
         .defaultServerLog
         .copy(doLogWhenReceived = x => Logger[F].info(x), doLogWhenHandled = (x, _) => Logger[F].info(x))
