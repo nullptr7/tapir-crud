@@ -28,7 +28,7 @@ object EmployeeRepository {
   import models.implicits.{AddressIdIso, EmployeeCodeIso}
   import cats.implicits._
 
-  def apply[F[_]: Concurrent: Logger](session: Session[F]): EmployeeRepository[F] =
+  def apply[F[_]: Async: Logger](session: Session[F]): EmployeeRepository[F] =
     new EmployeeRepository[F] {
 
       override def findAllEmployees: F[List[Employee]] = {

@@ -18,7 +18,7 @@ import sttp.tapir.statusCode
 
 import io.circe.generic.auto._
 
-import exceptions.ErrorResponse.GenericException
+import exceptions.ErrorResponse.{ServiceResponseException, GenericException}
 
 object Routes {
 
@@ -29,6 +29,9 @@ object Routes {
         .defaultServerLog
         .copy(doLogWhenReceived = x => Logger[F].info(x), doLogWhenHandled = (x, _) => Logger[F].info(x))
 
+    /*
+      TODO: Need to properly propogate error as, currently only F[O].attempt works whereas others do not.
+    */
     Resource.pure {
       Http4sServerInterpreter[F](
         Http4sServerOptions
@@ -39,7 +42,7 @@ object Routes {
               Option
                 .apply[ValuedEndpointOutput[_]](
                   ValuedEndpointOutput(
-                    jsonBody[GenericException].and(statusCode(StatusCode.InternalServerError)),
+                    jsonBody[ServiceResponseException].and(statusCode(StatusCode.InternalServerError)),
                     GenericException(ex.e.getMessage)
                   )
                 )
