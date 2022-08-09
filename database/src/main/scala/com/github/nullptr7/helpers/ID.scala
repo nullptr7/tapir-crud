@@ -10,8 +10,7 @@ import helpers.GenUUID
 
 object ID {
 
-  /**
-    * @note Probably an overkill to log this instead of just returning `GenUUID[F].make.map(IsUUID[A]._uuid.get)`
+  /** @note Probably an overkill to log this instead of just returning `GenUUID[F].make.map(IsUUID[A]._uuid.get)`
     */
   def make[F[_]: Sync: GenUUID, A: IsUUID]: F[A] =
     for {
