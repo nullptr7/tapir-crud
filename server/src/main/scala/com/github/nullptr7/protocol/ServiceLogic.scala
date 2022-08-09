@@ -65,7 +65,11 @@ class ServiceLogic[F[_]: Async: Logger](
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =
     logAuthModeRequest(authMode) *> (authMode match {
-      case Admin           => fo.adaptErr { case t: Throwable => GenericException(t.getMessage) }
+      case Admin           =>
+        fo.attemptTap {
+          case Left(t)      => Logger[F].error(t.getMessage) *> GenericException("Internal Server Error").raiseError[F, O]
+          case Right(value) => value.pure[F]
+        }
       case MissingAuthMode => MissingAuthException.raiseError[F, O]
       case NonAdmin        => UnauthorizedAuthException.raiseError[F, O]
       case InvalidMode     => InvalidAuthException.raiseError[F, O]
