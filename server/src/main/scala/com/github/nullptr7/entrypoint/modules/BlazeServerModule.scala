@@ -27,9 +27,9 @@ abstract class BlazeServerModule[F[_]: Async: std.Console: Network: Trace] exten
 
   final protected[entrypoint] lazy val server: Resource[F, Server] =
     for {
-      res    <- loadResource
-      routes <- withRoutes(res.databaseConfig)
-      serve  <- withServer(routes, res.serverConfig)
+      app    <- appResources
+      routes <- withRoutes(app.databaseConfig)
+      serve  <- withServer(routes, app.serverConfig)
     } yield serve
 
   final private[this] def withServer(routes: HttpApp[F], serverConfig: ServerConfig): Resource[F, Server] =
@@ -38,7 +38,7 @@ abstract class BlazeServerModule[F[_]: Async: std.Console: Network: Trace] exten
       .withHttpApp(routes)
       .resource
 
-  final private[this] lazy val loadResource: Resource[F, ApplicationResources] =
+  final private[this] lazy val appResources: Resource[F, ApplicationResources] =
     (
       ConfigLoader[F].load[DatabaseConfig, Postgres.type],
       ConfigLoader[F].load[ServerConfig, Blaze.type]

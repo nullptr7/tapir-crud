@@ -1,6 +1,8 @@
 package com.github.nullptr7
 package storage
 
+import org.typelevel.log4cats.Logger
+
 import cats.effect._
 import cats.effect.std.Console
 
@@ -20,7 +22,7 @@ object DatabaseSession {
 
   def apply[F[_]: DatabaseSession]: DatabaseSession[F] = implicitly
 
-  implicit def withConfig[F[_]: Async: Console: Trace: Network] =
+  implicit def withConfig[F[_]: Async: Console: Trace: Network: Logger]: DatabaseSession[F] =
     new DatabaseSession[F] {
 
       def make(config: DatabaseConfig): Resource[F, Session[F]] =
@@ -32,9 +34,8 @@ object DatabaseSession {
             database = config.database,
             password = Option(config.password.value)
           )
+          .evalTap(_ => Logger[F].info("Database session created..."))
 
     }
-
-  def create(config: DatabaseConfig) = ???
 
 }

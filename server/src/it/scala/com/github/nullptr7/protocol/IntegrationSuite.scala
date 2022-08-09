@@ -4,6 +4,8 @@ package protocol
 import java.util.UUID
 
 import org.specs2.mutable.SpecificationLike
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import cats.effect._
 import cats.effect.testing.specs2.{CatsEffect, CatsResource}
@@ -27,6 +29,8 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
   implicit override val concurrent: Concurrent[IO]  = IO.asyncForIO
   implicit override val console:    std.Console[IO] = IO.consoleForIO
   implicit override val network:    Network[IO]     = Network.forAsync[IO]
+
+  implicit val logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   private val employeeId1:   EmployeeId   = EmployeeId(1)
   private val employeeCode1: EmployeeCode = EmployeeCode(UUID.fromString("75b107cb-2bef-431f-8b33-b2074d51bd08"))

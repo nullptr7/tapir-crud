@@ -3,6 +3,7 @@ package entrypoint
 package modules
 
 import org.http4s.HttpApp
+import org.typelevel.log4cats.Logger
 
 import cats.effect._
 
@@ -16,6 +17,8 @@ import protocol.ServiceLogic
 import configurations.types._
 
 abstract class RoutingModule[F[_]: Async: std.Console: Trace: Network] {
+
+  implicit val logger: Logger[F]
 
   final private[modules] def withRoutes(dbConfig: DatabaseConfig): Resource[F, HttpApp[F]] =
     for {

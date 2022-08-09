@@ -10,6 +10,7 @@ val scalafixCommonSettings =
 val Versions =
   new {
     val tapir = "1.0.0"
+    val log4jcats = "2.4.0"
   }
 
 lazy val commonSettings: Seq[Setting[_]] = Seq(
@@ -17,6 +18,12 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   // scalafixCommonSettings,
   libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "1.2.11",
+    "org.typelevel" %% "log4cats-slf4j" % Versions.log4jcats,
+    "org.typelevel" %% "log4cats-noop" % Versions.log4jcats,
+    // "org.apache.logging.log4j" % "log4j-core" % Versions.log4j,
+    // "org.apache.logging.log4j" % "log4j-api" % Versions.log4j,
+    // "org.apache.logging.log4j" % "log4j-slf4j-impl" % Versions.log4j,
+    // "org.typelevel" %% "log4cats-core" % "2.4.0",
     "com.github.liancheng" %% "organize-imports" % "0.6.0"
   )
 )

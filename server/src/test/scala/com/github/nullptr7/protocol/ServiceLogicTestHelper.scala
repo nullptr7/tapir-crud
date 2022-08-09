@@ -2,17 +2,22 @@ package com.github.nullptr7
 package protocol
 
 import org.mockito.MockitoSugar.mock
+import org.typelevel.log4cats.Logger
 
-import cats.effect.IO
+import cats.effect.kernel.Async
 
 import storage._
 
-trait ServiceLogicTestHelper {
+trait ServiceLogicTestHelper[F[_]] {
 
-  protected lazy val serviceLogic: ServiceLogic[IO] =
-    new ServiceLogic[IO](
-      mock[EmployeeRepository[IO]],
-      mock[AddressRepository[IO]]
+  implicit protected def logger: Logger[F]
+
+  implicit protected def async: Async[F]
+
+  protected lazy val serviceLogic: ServiceLogic[F] =
+    new ServiceLogic[F](
+      mock[EmployeeRepository[F]],
+      mock[AddressRepository[F]]
     )
 
 }

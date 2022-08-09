@@ -1,12 +1,14 @@
 package com.github.nullptr7
 package storage
 
+import org.typelevel.log4cats.Logger
+
 import cats.effect._
 
 import models.{CreateEmployee, Employee, EmployeeId}
 import optics.ID
 
-trait EmployeeRepository[F[_]] {
+trait EmployeeRepository[F[_]] extends Repository[F] {
 
   def findAllEmployees: F[List[Employee]]
 
@@ -20,15 +22,13 @@ object EmployeeRepository {
 
   import skunk._
   import skunk.implicits._
-
   import models.{AddressId, CreateAddress, CreateEmployee, Employee, EmployeeCode, EmployeeId}
   import codecs.DatabaseCodecs.{addressIdCodec, dbToEmployeeDecoder, employeeCodeCodec, employeeIdCodec}
-
   import skunk.codec.all._
   import models.implicits.{AddressIdIso, EmployeeCodeIso}
   import cats.implicits._
 
-  def apply[F[_]: Concurrent](session: Session[F]): EmployeeRepository[F] =
+  def apply[F[_]: Async: Logger](session: Session[F]): EmployeeRepository[F] =
     new EmployeeRepository[F] {
 
       override def findAllEmployees: F[List[Employee]] = {
@@ -42,10 +42,7 @@ object EmployeeRepository {
 
         session
           .execute(empQuery)
-          .attemptTap {
-            case Left(error)  => Concurrent[F].raiseError[List[Employee]](error)
-            case Right(value) => value.pure[F]
-          }
+          .onError(logAndRaise)
       }
 
       override def findById(id: Long): F[Option[Employee]] = {
@@ -61,6 +58,7 @@ object EmployeeRepository {
         session
           .prepare(empQueryById)
           .use(_.option(id))
+          .onError(logAndRaise)
       }
 
       override def addEmployee(employee: CreateEmployee): F[EmployeeId] = {
@@ -71,7 +69,9 @@ object EmployeeRepository {
           employeeId     <- addEmployeeHandler(employee, totalEmployees, addressId)
         } yield employeeId
 
-        addEmployeeRes.use(_.pure[F])
+        addEmployeeRes
+          .use(_.pure[F])
+          .onError(logAndRaise)
 
       }
 
@@ -92,9 +92,12 @@ object EmployeeRepository {
         session
           .prepare(addEmployee)
           .evalMap { cmd =>
-            ID.make[F, EmployeeCode].flatMap { code =>
-              cmd.execute(employeeId ~ code ~ employee.name ~ employee.age ~ employee.salary ~ addressId).as(employeeId)
-            }
+            ID
+              .make[F, EmployeeCode]
+              .flatMap { code =>
+                cmd.execute(employeeId ~ code ~ employee.name ~ employee.age ~ employee.salary ~ addressId).as(employeeId)
+              }
+              .onError(logAndRaise)
           }
 
       }
@@ -108,6 +111,7 @@ object EmployeeRepository {
             .execute(employeeCount)
             .map(_.sorted.last + 1)
             .map(EmployeeId)
+            .onError(logAndRaise)
         )
 
       }
@@ -125,9 +129,12 @@ object EmployeeRepository {
         session
           .prepare(insertAddressQuery)
           .evalMap { cmd =>
-            ID.make[F, AddressId].flatMap { id =>
-              cmd.execute(id ~ address).as(id)
-            }
+            ID
+              .make[F, AddressId]
+              .flatMap { id =>
+                cmd.execute(id ~ address).as(id)
+              }
+              .onError(logAndRaise)
           }
       }
 
