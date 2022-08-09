@@ -6,7 +6,7 @@ import org.typelevel.log4cats.Logger
 import cats._
 import cats.implicits._
 
-import com.github.nullptr7.exceptions.DatabaseException
+import exceptions.DatabaseException
 
 abstract class Repository[F[_]: Logger] {
 
