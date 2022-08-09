@@ -50,16 +50,18 @@ class ServiceLogic[F[_]: Async: Logger](
     }
 
   override val make: Resource[F, List[ServerEndpointF]] =
-    Resource.pure(
-      List(
-        allEmployeeEndpoint,
-        empByIdEndpoint,
-        addressByIdEndpoint,
-        addressByZipEndpoint,
-        addAddressEndpoint,
-        addEmployeeEndpoint
+    Resource
+      .pure(
+        List(
+          allEmployeeEndpoint,
+          empByIdEndpoint,
+          addressByIdEndpoint,
+          addressByZipEndpoint,
+          addAddressEndpoint,
+          addEmployeeEndpoint
+        )
       )
-    )
+      .evalTap(_ => Logger[F].info("Loading endpoints..."))
 
   private[this] def handle[O](authMode: AuthMode)(fo: => F[O]): F[O] =
     logAuthModeRequest(authMode) *> (authMode match {

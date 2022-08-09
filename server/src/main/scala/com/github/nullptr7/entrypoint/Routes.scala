@@ -24,10 +24,10 @@ object Routes {
 
   private[entrypoint] def make[F[_]: Async: Logger](serverLogic: List[ServerEndpoint[Any, F]]): Resource[F, HttpApp[F]] = {
 
-    val defaultServerLog = 
+    val defaultServerLog =
       Http4sServerOptions
-      .defaultServerLog
-      .copy(doLogWhenReceived = x => Logger[F].info(x), doLogWhenHandled = (x, _) => Logger[F].info(x))
+        .defaultServerLog
+        .copy(doLogWhenReceived = x => Logger[F].info(x), doLogWhenHandled = (x, _) => Logger[F].info(x))
 
     Resource.pure {
       Http4sServerInterpreter[F](
@@ -48,7 +48,7 @@ object Routes {
           }
           .options
       ).toRoutes(serverLogic).orNotFound
-    }
+    }.evalTap(_ => Logger[F].info("Making routes..."))
   }
 
 }
