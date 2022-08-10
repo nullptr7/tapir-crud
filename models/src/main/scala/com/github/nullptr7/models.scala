@@ -3,6 +3,7 @@ package com.github.nullptr7
 import java.util.UUID
 
 import io.circe.Codec
+import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 import io.circe.generic.semiauto.deriveCodec
 
 import monocle.Iso
@@ -66,13 +67,13 @@ package models {
 
   final object codecs {
 
-    implicit val employeeCodeCodec:   Codec[EmployeeCode]   = deriveCodec[EmployeeCode]
+    implicit val employeeCodeCodec:   Codec[EmployeeCode]   = deriveUnwrappedCodec[EmployeeCode]
     implicit val createEmployeeCodec: Codec[CreateEmployee] = deriveCodec[CreateEmployee]
-    implicit val employeeIdCodec:     Codec[EmployeeId]     = deriveCodec[EmployeeId]
+    implicit val employeeIdCodec:     Codec[EmployeeId]     = deriveUnwrappedCodec[EmployeeId]
     implicit val employeeCodec:       Codec[Employee]       = deriveCodec[Employee]
     implicit val addressCodec:        Codec[Address]        = deriveCodec[Address]
     implicit val createAddressCodec:  Codec[CreateAddress]  = deriveCodec[CreateAddress]
-    implicit val addressIdCodec:      Codec[AddressId]      = deriveCodec[AddressId]
+    implicit val addressIdCodec:      Codec[AddressId]      = deriveUnwrappedCodec[AddressId]
   }
 
 }

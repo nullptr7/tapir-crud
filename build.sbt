@@ -9,8 +9,9 @@ val scalafixCommonSettings =
 
 val Versions =
   new {
-    val tapir = "1.0.0"
+    val tapir     = "1.0.0"
     val log4jcats = "2.4.0"
+    val circe     = "0.14.1"
   }
 
 lazy val commonSettings: Seq[Setting[_]] = Seq(
@@ -57,6 +58,7 @@ lazy val models =
       // scalafixCommonSettings,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir,
+        "io.circe" %% "circe-generic-extras" % Versions.circe,
         "dev.optics" %% "monocle-core" % "3.1.0"
       )
     )
@@ -73,7 +75,7 @@ lazy val server =
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % Versions.tapir,
         "org.http4s" %% "http4s-blaze-server" % "0.23.12",
-        "io.circe" %% "circe-generic-extras" % "0.14.1",
+        "io.circe" %% "circe-generic-extras" % Versions.circe,
         "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % Versions.tapir % includeTestandIt,
         "org.scalatest" %% "scalatest" % "3.2.12" % includeTestandIt,
         "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.6.2" % includeTestandIt,
