@@ -58,7 +58,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
       .thenReturn(IO.pure(allAddresses.find(_.id == addressId)))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=${addressId.value.toString}")
+      .get(uri"http://localhost:8080/employees/addressById?id=${addressId.value.toString}")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByIdEndpointStub)
@@ -82,7 +82,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
       .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=${addressId.value.toString}")
+      .get(uri"http://localhost:8080/employees/addressById?id=${addressId.value.toString}")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByIdEndpointStub)
@@ -93,7 +93,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
   it should "return unauthorized when AuthMode is nonadmin" in {
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=777")
+      .get(uri"http://localhost:8080/employees/addressById?id=777")
       .header("X-AuthMode", "nonadmin")
       .send(addressByIdEndpointStub)
 
@@ -109,7 +109,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
   it should "return auth header not passed exception when AuthMode is not passed in the header" in {
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?id=777")
+      .get(uri"http://localhost:8080/employees/addressById?id=777")
       .send(addressByIdEndpointStub)
 
     val errorBody = response.unsafeRunSync().body
@@ -127,7 +127,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
       .thenReturn(IO.pure(allAddresses.find(_.zip.toInt == 12345)))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?pincode=12345")
+      .get(uri"http://localhost:8080/employees/addressByZip?pincode=12345")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByZipEndpointStub)
@@ -151,7 +151,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
       .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?pincode=963963963")
+      .get(uri"http://localhost:8080/employees/addressByZip?pincode=963963963")
       .header("X-AuthMode", "admin")
       .response(asJson[Option[Address]])
       .send(addressByZipEndpointStub)
@@ -161,7 +161,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   it should "return unauthorized when nonadmin" in {
     val response = basicRequest
-      .get(uri"http://localhost:8080/employees/address?pincode=963963963")
+      .get(uri"http://localhost:8080/employees/addressByZip?pincode=963963963")
       .header("X-AuthMode", "nonadmin")
       .send(addressByZipEndpointStub)
 

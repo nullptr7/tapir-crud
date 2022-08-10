@@ -115,7 +115,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
           .thenRunLogic()
           .backend()
       basicRequest
-        .get(uri"http://localhost:8080/employees/address?id=${addressId.value.toString}")
+        .get(uri"http://localhost:8080/employees/addressById?id=${addressId.value.toString}")
         .header("X-AuthMode", "admin")
         .response(asJson[Option[Address]])
         .send(addressByIdEndpointStub)
@@ -142,7 +142,7 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
           .backend()
 
       basicRequest
-        .get(uri"http://localhost:8080/employees/address?pincode=123456")
+        .get(uri"http://localhost:8080/employees/addressByZip?pincode=123456")
         .header("X-AuthMode", "admin")
         .response(asJson[Option[Address]])
         .send(addressByZipEndpointStub)

@@ -14,7 +14,7 @@ trait AddressContracts[F[_]] extends Contracts[F] {
   lazy val addressById =
     base
       .get
-      .in("address")
+      .in("addressById")
       .in(query[String]("id"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])
@@ -22,7 +22,7 @@ trait AddressContracts[F[_]] extends Contracts[F] {
   lazy val addressByPincode =
     base
       .get
-      .in("address")
+      .in("addressByZip")
       .in(query[String]("pincode"))
       .out(jsonBody[Option[Address]])
       .errorOut(jsonBody[ServiceResponseException])

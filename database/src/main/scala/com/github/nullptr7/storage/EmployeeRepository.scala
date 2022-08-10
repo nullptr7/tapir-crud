@@ -50,7 +50,7 @@ object EmployeeRepository {
 
         val empQueryById: Query[Long, Employee] =
           sql"""
-             SELECT e.id, e.name, e.age, e.salary, a.id, a.street, a.city, a.state, a.zip
+             SELECT e.id, e.code, e.name, e.age, e.salary, a.id, a.street, a.city, a.state, a.zip
              FROM EMPLOYEE e, ADDRESS a
              WHERE e.id = $int8 AND e.address = a.id
            """.query(dbToEmployeeDecoder)
