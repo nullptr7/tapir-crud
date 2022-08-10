@@ -8,7 +8,7 @@ import cats.implicits._
 
 import helpers.GenUUID
 
-object ID {
+final object ID {
 
   /** @note Probably an overkill to log this instead of just returning `GenUUID[F].make.map(IsUUID[A]._uuid.get)`
     */
