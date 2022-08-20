@@ -1,13 +1,21 @@
 package com.github.nullptr7
 package protocol
 
-import org.mockito.MockitoSugar.when
+import java.net.URI
+import java.util.UUID
+
+import org.http4s
+import org.http4s.Status
+import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
+import org.http4s.client.Client
+import org.mockito.ArgumentMatchers.any
+import org.mockito.MockitoSugar.{mock, when}
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import cats.effect.IO
 import cats.effect.kernel.Async
 import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, Resource}
 
 import sttp.client3._
 import sttp.client3.circe._
@@ -19,15 +27,17 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 import io.circe.parser._
 import io.circe.syntax.EncoderOps
 
-import models.codecs._
+import client.TransportServiceClient
+import configurations.types.{Sensitive, TransportApiClientDetails}
+import common.BaseTest
 import exceptions.ErrorResponse._
 import mocks.data._
-import common.BaseTest
+import models.codecs._
 
 class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
-  import serviceLogic._
   import models._
+  import serverLogicModule._
 
   implicit override protected def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
   implicit override protected def async:  Async[IO]  = IO.asyncForIO
@@ -52,8 +62,37 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
 
   "All Employee Endpoint with authMode header" should "work when admin" in {
 
-    when(serviceLogic.employeeRepo.findAllEmployees)
+    when(serverLogicModule.repositoryModule.findAllEmployees)
       .thenReturn(IO.pure(allEmployees))
+
+    import models.DAY
+
+    val client = mock[Client[IO]]
+
+    when(client.run(any[http4s.Request[IO]]))
+      .thenReturn(
+        Resource.pure[IO, http4s.Response[IO]](
+          http4s
+            .Response[IO](
+              Status.Ok
+            )
+            .withEntity(
+              TransportResponse(EmployeeCode(UUID.randomUUID()), 1, 1, DAY)
+            )
+        )
+      )
+
+    when(serverLogicModule.clients.transportServiceClient)
+      .thenReturn(
+        new TransportServiceClient[IO](
+          client,
+          TransportApiClientDetails(
+            URI.create("https://2ff8313d-c02d-4113-9768-501060fa697d.mock.pstmn.io/api/get/employee-transport-data"),
+            "scott",
+            Sensitive("tiger")
+          )
+        )
+      )
 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
@@ -99,7 +138,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
 
   "EmployeeById endpoint with authMode header" should "work when admin and valid id" in {
 
-    when(serviceLogic.employeeRepo.findById(1))
+    when(serverLogicModule.repositoryModule.findEmployeeById(1))
       .thenReturn(IO.pure(allEmployees.find(_.id == employeeId1)))
     // when
     val response = basicRequest
@@ -119,7 +158,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
 
   it should "return none when the authMode is admin but id is not available from the list" in {
 
-    when(serviceLogic.employeeRepo.findById(9))
+    when(serverLogicModule.repositoryModule.findEmployeeById(9))
       .thenReturn(IO.pure(Option.empty[Employee]))
 
     // when
@@ -169,8 +208,8 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
     val scott = CreateEmployee("Scott", 12, 10.0, CreateAddress("Street1", "City1", "State1", "123456"))
 
     when(
-      serviceLogic
-        .employeeRepo
+      serverLogicModule
+        .repositoryModule
         .addEmployee(scott)
     )
       .thenReturn(IO.pure(EmployeeId(1)))

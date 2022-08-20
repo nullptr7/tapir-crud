@@ -6,7 +6,8 @@ import org.typelevel.log4cats.Logger
 
 import cats.effect.kernel.Async
 
-import storage._
+import client.ApiClients
+import entrypoint.modules.{RepositoryModule, ServiceLogicModule}
 
 trait ServiceLogicTestHelper[F[_]] {
 
@@ -14,10 +15,7 @@ trait ServiceLogicTestHelper[F[_]] {
 
   implicit protected def async: Async[F]
 
-  protected lazy val serviceLogic: ServiceLogic[F] =
-    new ServiceLogic[F](
-      mock[EmployeeRepository[F]],
-      mock[AddressRepository[F]]
-    )
+  protected lazy val serverLogicModule: ServiceLogicModule[F] =
+    new ServiceLogicModule[F](mock[RepositoryModule[F]], mock[ApiClients[F]])
 
 }

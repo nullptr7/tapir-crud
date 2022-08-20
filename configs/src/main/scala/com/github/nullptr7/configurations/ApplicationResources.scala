@@ -1,9 +1,10 @@
 package com.github.nullptr7
 package configurations
 
-import types.{DatabaseConfig, ServerConfig}
+import types.{ClientConfig, DatabaseConfig, ServerConfig}
 
 final case class ApplicationResources(
   databaseConfig: DatabaseConfig,
-  serverConfig:   ServerConfig
+  serverConfig:   ServerConfig,
+  clientConfig:   ClientConfig
 )

@@ -29,7 +29,7 @@ import mocks.data._
 
 class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
-  import serviceLogic._
+  import serverLogicModule._
 
   implicit override protected def async:  Async[IO]  = IO.asyncForIO
   implicit override protected def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
@@ -54,7 +54,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   "Address Service By ID endpoint" should "work when admin and valid id" in {
 
-    when(serviceLogic.addressRepo.findAddressById(addressId))
+    when(serverLogicModule.repositoryModule.findAddressById(addressId))
       .thenReturn(IO.pure(allAddresses.find(_.id == addressId)))
 
     val response = basicRequest
@@ -78,7 +78,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   it should "return empty response when admin and incorrect id" in {
 
-    when(serviceLogic.addressRepo.findAddressById(addressId))
+    when(serverLogicModule.repositoryModule.findAddressById(addressId))
       .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
@@ -123,7 +123,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   "Address Service By Zip endpoint" should "work when admin and valid zip" in {
 
-    when(serviceLogic.addressRepo.findAddressByZip("12345"))
+    when(serverLogicModule.repositoryModule.findAddressByZip("12345"))
       .thenReturn(IO.pure(allAddresses.find(_.zip.toInt == 12345)))
 
     val response = basicRequest
@@ -147,7 +147,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
 
   it should "return empty response when admin and incorrect zip" in {
 
-    when(serviceLogic.addressRepo.findAddressByZip("963963963"))
+    when(serverLogicModule.repositoryModule.findAddressByZip("963963963"))
       .thenReturn(IO.pure(Option.empty[Address]))
 
     val response = basicRequest
@@ -178,7 +178,7 @@ class AddressServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] {
     val givenUUID        = UUID.randomUUID()
     val addressInRequest = CreateAddress("street", "city", "state", "123456")
 
-    when(serviceLogic.addressRepo.addAddress(addressInRequest))
+    when(serverLogicModule.repositoryModule.addAddress(addressInRequest))
       .thenReturn(IO.pure(AddressId(givenUUID)))
 
     val response = basicRequest

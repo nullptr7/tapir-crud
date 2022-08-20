@@ -1,7 +1,10 @@
 package com.github.nullptr7
 package protocol
 
+import java.net.URI
 import java.util.UUID
+
+import scala.concurrent.duration.DurationInt
 
 import org.specs2.mutable.SpecificationLike
 import org.typelevel.log4cats.Logger
@@ -19,12 +22,15 @@ import sttp.tapir.server.stub.TapirStubInterpreter
 
 import fs2.io.net.Network
 
+import client.{ApiClients, TransportServiceClient}
+import client.module.BlazeClientModule
+import configurations.types.{ClientConfig, Sensitive, TransportApiClientDetails}
+import entrypoint.modules.{RepositoryModule, ServiceLogicModule}
 import helper.PostgresSessionHelper
 import models._
 import models.codecs._
-import storage._
 
-class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with SpecificationLike with CatsEffect with PostgresSessionHelper[IO] {
+class IntegrationSuite extends CatsResource[IO, ServiceLogicModule[IO]] with SpecificationLike with CatsEffect with PostgresSessionHelper[IO] {
   sequential
   implicit override val concurrent: Concurrent[IO]  = IO.asyncForIO
   implicit override val console:    std.Console[IO] = IO.consoleForIO
@@ -33,16 +39,36 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   private val employeeId1:   EmployeeId   = EmployeeId(1)
-  private val employeeCode1: EmployeeCode = EmployeeCode(UUID.fromString("75b107cb-2bef-431f-8b33-b2074d51bd08"))
+  private val employeeCode1: EmployeeCode = EmployeeCode(UUID.fromString("4a5f132a-084b-445f-b0b0-3e1f1f36521c"))
   private val addressId:     AddressId    = AddressId(UUID.fromString("20d88c49-01e9-40d0-b568-982100e676ba"))
 
-  override val resource: Resource[IO, ServiceLogic[IO]] =
+  override val resource: Resource[IO, ServiceLogicModule[IO]] =
     for {
       session      <- sessionR
-      serviceLogic <- Resource.pure[IO, ServiceLogic[IO]](
-                        new ServiceLogic[IO](
-                          EmployeeRepository.apply[IO](session),
-                          AddressRepository.apply[IO](session)
+      module       <- RepositoryModule.make[IO](session)
+      client       <- BlazeClientModule[IO].make(
+                        ClientConfig(
+                          30.seconds,
+                          TransportApiClientDetails(
+                            URI.create("https://2ff8313d-c02d-4113-9768-501060fa697d.mock.pstmn.io/api/get/employee-transport-data"),
+                            "scott",
+                            Sensitive("tiger")
+                          )
+                        )
+                      )
+      serviceLogic <- Resource.pure[IO, ServiceLogicModule[IO]](
+                        new ServiceLogicModule[IO](
+                          module,
+                          ApiClients(
+                            new TransportServiceClient[IO](
+                              client,
+                              TransportApiClientDetails(
+                                URI.create("https://2ff8313d-c02d-4113-9768-501060fa697d.mock.pstmn.io/api/get/employee-transport-data"),
+                                "scott",
+                                Sensitive("tiger")
+                              )
+                            )
+                          )
                         )
                       )
     } yield serviceLogic
@@ -89,18 +115,26 @@ class IntegrationSuite extends CatsResource[IO, ServiceLogic[IO]] with Specifica
     basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "admin")
-      .response(asJson[List[Employee]])
+      .response(asJson[List[EmployeeWithTransport]])
       .send(allEmployeeEndpointStub)
 
   }.map { resp =>
     lazy val paul =
-      Employee(
-        id      = employeeId1,
-        code    = employeeCode1,
-        name    = "Paul",
-        age     = 32,
-        salary  = 20000.0,
-        address = Address(addressId, "Some Street Name", "Some City", "Some State", "123456")
+      EmployeeWithTransport(
+        Employee(
+          id      = employeeId1,
+          code    = employeeCode1,
+          name    = "Paul",
+          age     = 32,
+          salary  = 20000.0,
+          address = Address(addressId, "Some Street Name", "Some City", "Some State", "123456")
+        ),
+        transportDetails = TransportResponse(
+          employeeCode    = employeeCode1,
+          routes          = 1,
+          numberOfNoShows = 4,
+          shift           = DAY
+        )
       )
 
     resp.body must beRight

@@ -1,7 +1,11 @@
 package com.github.nullptr7
 package configurations
 
-package types {
+import scala.concurrent.duration.Duration
+
+import java.net.URI
+
+object types {
 
   final case class Sensitive(value: String) extends AnyVal {
     override def toString: String = "MASKED"
@@ -12,30 +16,51 @@ package types {
 
   final case class Namespace(value: String) extends AnyVal
 
-  trait ConfigType {
+  sealed trait ConfigType {
     val namespace: Namespace
   }
 
   object ConfigType {
 
-    implicit object Blaze extends ConfigType {
-      val namespace: Namespace = Namespace("server")
+    implicit object Server extends ConfigType {
+      override val namespace: Namespace = Namespace("server")
     }
 
     implicit object Postgres extends ConfigType {
-      val namespace: Namespace = Namespace("db")
+      override val namespace: Namespace = Namespace("db")
+    }
+
+    implicit object Client extends ConfigType {
+      override val namespace: Namespace = Namespace("client")
     }
 
   }
 
+  final case class ClientConfig(
+    timeout:   Duration,
+    transport: TransportApiClientDetails
+  )
+
   final case class ServerConfig(host: Hostname, port: Port)
 
-  final case class DatabaseConfig(
-    val host:     Hostname,
-    val port:     Port,
-    val user:     String,
-    val database: String,
+  sealed trait ClientDetails {
+    val url:      URI
+    val username: String
     val password: Sensitive
+  }
+
+  final case class TransportApiClientDetails(
+    override val url:      URI,
+    override val username: String,
+    override val password: Sensitive
+  ) extends ClientDetails
+
+  final case class DatabaseConfig(
+    host:     Hostname,
+    port:     Port,
+    user:     String,
+    database: String,
+    password: Sensitive
   )
 
 }

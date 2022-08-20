@@ -6,27 +6,26 @@ import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 
-import cats.effect.kernel.{Async, Resource}
-import cats.effect.std
-
-import fs2.io.net.Network
-import natchez.Trace
+import cats.effect.Resource
+import cats.effect.kernel.Async
 
 import configurations.types.ServerConfig
 
-abstract class BlazeServerModule[F[_]: Async: std.Console: Network: Trace] extends RoutingModule[F] with ApplicationResourceModule {
+abstract class BlazeServerModuleV2[F[_]: Async](serverConfig: ServerConfig) {
 
-  final protected[entrypoint] lazy val server: Resource[F, Server] =
-    for {
-      app    <- appResources
-      routes <- withRoutes(app.databaseConfig)
-      serve  <- withServer(routes, app.serverConfig)
-    } yield serve
-
-  final private[this] def withServer(routes: HttpApp[F], serverConfig: ServerConfig): Resource[F, Server] =
+  final def serve(route: HttpApp[F]): Resource[F, Server] =
     BlazeServerBuilder[F]
+      .withHttpApp(route)
       .bindHttp(serverConfig.port.value, serverConfig.host.value)
-      .withHttpApp(routes)
       .resource
+
+}
+
+object BlazeServerModuleV2 {
+
+  def make[F[_]: Async](serverConfig: ServerConfig): Resource[F, BlazeServerModuleV2[F]] =
+    Resource.pure(
+      new BlazeServerModuleV2[F](serverConfig) {}
+    )
 
 }
