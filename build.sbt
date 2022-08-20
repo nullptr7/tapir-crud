@@ -9,9 +9,10 @@ val scalafixCommonSettings =
 
 val Versions =
   new {
-    val tapir     = "1.0.0"
-    val log4jcats = "2.4.0"
-    val circe     = "0.14.1"
+    val tapir    = "1.0.3"
+    val log4cats = "2.4.0"
+    val circe    = "0.14.2"
+    val http4s   = "0.23.12"
   }
 
 lazy val commonSettings: Seq[Setting[_]] = Seq(
@@ -19,8 +20,8 @@ lazy val commonSettings: Seq[Setting[_]] = Seq(
   // scalafixCommonSettings,
   libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "1.2.11",
-    "org.typelevel" %% "log4cats-slf4j" % Versions.log4jcats,
-    "org.typelevel" %% "log4cats-noop" % Versions.log4jcats,
+    "org.typelevel" %% "log4cats-slf4j" % Versions.log4cats,
+    "org.typelevel" %% "log4cats-noop" % Versions.log4cats,
     // "org.apache.logging.log4j" % "log4j-core" % Versions.log4j,
     // "org.apache.logging.log4j" % "log4j-api" % Versions.log4j,
     // "org.apache.logging.log4j" % "log4j-slf4j-impl" % Versions.log4j,
@@ -57,13 +58,25 @@ lazy val models =
       commonSettings,
       // scalafixCommonSettings,
       libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir,
         "io.circe" %% "circe-generic-extras" % Versions.circe,
         "dev.optics" %% "monocle-core" % "3.1.0"
       )
     )
 
 lazy val includeTestandIt = "it,test"
+
+lazy val client =
+  project
+    .settings(
+      commonSettings,
+      libraryDependencies ++= Seq(
+        "org.http4s" %% "http4s-blaze-client" % Versions.http4s,
+        "io.circe" %% "circe-generic-extras" % Versions.circe,
+        "com.softwaremill.sttp.tapir" %% "tapir-http4s-client" % Versions.tapir,
+        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir
+      )
+    )
+    .dependsOn(configs)
 
 lazy val server =
   project
@@ -74,12 +87,14 @@ lazy val server =
       scalafixCommonSettings,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % Versions.tapir,
-        "org.http4s" %% "http4s-blaze-server" % "0.23.12",
+        "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % Versions.tapir,
+        "org.http4s" %% "http4s-blaze-server" % Versions.http4s,
+        "org.http4s" %% "http4s-circe" % Versions.http4s,
         "io.circe" %% "circe-generic-extras" % Versions.circe,
         "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % Versions.tapir % includeTestandIt,
         "org.scalatest" %% "scalatest" % "3.2.12" % includeTestandIt,
-        "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.6.2" % includeTestandIt,
-        "com.softwaremill.sttp.client3" %% "circe" % "3.6.2" % includeTestandIt,
+        "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.7.2" % includeTestandIt,
+        "com.softwaremill.sttp.client3" %% "circe" % "3.7.2" % includeTestandIt,
         "org.mockito" %% "mockito-scala" % "1.17.7" % Test,
         "org.tpolecat" %% "skunk-core" % "0.3.1" % IntegrationTest,
         "org.typelevel" %% "cats-effect-testing-specs2" % "1.4.0" % IntegrationTest
@@ -89,13 +104,13 @@ lazy val server =
         // "com.softwaremill.sttp.tapir" %% "tapir-tests" % "1.0.0"
       )
     )
-    .dependsOn(models, database)
+    .dependsOn(models, database, client)
 
 lazy val app =
   project
     .in(file("."))
     .settings(publish := {}, publish / skip := true)
-    .aggregate(models, server, database)
+    .aggregate(models, server, database, client)
 
 lazy val deleteBloop = taskKey[Unit]("Delete Existing Bloop Directory")
 deleteBloop := {

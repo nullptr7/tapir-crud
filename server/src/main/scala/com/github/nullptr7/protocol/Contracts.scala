@@ -16,5 +16,5 @@ trait Contracts[F[_]] {
       .in("employees")
       .in(header[AuthMode]("X-AuthMode").default(MissingAuthMode))
 
-  protected[protocol] val make: Resource[F, List[ServerEndpointF]]
+  val make: Resource[F, List[ServerEndpointF]]
 }
