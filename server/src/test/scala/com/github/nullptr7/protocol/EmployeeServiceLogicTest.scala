@@ -2,7 +2,6 @@ package com.github.nullptr7
 package protocol
 
 import java.net.URI
-import java.util.UUID
 
 import org.http4s
 import org.http4s.Status
@@ -77,7 +76,7 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
               Status.Ok
             )
             .withEntity(
-              TransportResponse(EmployeeCode(UUID.randomUUID()), 1, 1, DAY)
+              TransportResponse(employeeCode1, 1, 1, DAY)
             )
         )
       )
@@ -97,10 +96,22 @@ class EmployeeServiceLogicTest extends BaseTest with ServiceLogicTestHelper[IO] 
     val response = basicRequest
       .get(uri"http://localhost:8080/employees/get/all")
       .header("X-AuthMode", "admin")
-      .response(asJson[List[Employee]])
+      .response(asJson[List[EmployeeWithTransport]])
       .send(allEmployeeEndpointStub)
 
-    response.unsafeRunSync().body shouldBe Right(allEmployees)
+    response.unsafeRunSync().body shouldBe Right(
+      List(
+        EmployeeWithTransport(
+          id               = employeeId1,
+          code             = employeeCode1,
+          name             = "John",
+          age              = 12,
+          salary           = 1000,
+          address          = Address(addressId, "Main Street", "Anytown", "CA", "12345"),
+          transportDetails = TransportResponse(employeeCode1, 1, 1, DAY)
+        )
+      )
+    )
   }
 
   it should "fail when not admin" in {
