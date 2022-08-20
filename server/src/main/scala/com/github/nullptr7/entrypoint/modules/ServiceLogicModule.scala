@@ -10,8 +10,6 @@ import org.typelevel.log4cats.Logger
 import cats.effect.Resource
 import cats.effect.kernel.Async
 
-import io.circe.syntax.EncoderOps
-
 import client.ApiClients
 import exceptions.ErrorResponse._
 import models.{AddressId, EmployeeWithTransport, TransportRequest, TransportResponse}
@@ -38,7 +36,7 @@ final class ServiceLogicModule[F[_]: Async: Logger](val repositoryModule: Reposi
         allEmployees                  <- repositoryModule.findAllEmployees
         employeesWithTransportDetails <- allEmployees.traverse { emp =>
                                            import models.codecs._
-                                           Logger[F].info(s"sending request ${TransportRequest(emp.code).asJson.toString}") *>
+                                           Logger[F].info(s"Finding transport details for ${emp.code.value}") *>
                                              transportServiceClient
                                                .sendAndReceive[TransportRequest, TransportResponse](Some(TransportRequest(emp.code)))
                                                .handleErrorWith { t: Throwable =>
