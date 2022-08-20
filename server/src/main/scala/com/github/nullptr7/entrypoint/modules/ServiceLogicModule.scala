@@ -32,20 +32,19 @@ final class ServiceLogicModule[F[_]: Async: Logger](val repositoryModule: Reposi
   lazy val allEmployeeEndpoint: ServerEndpointF =
     allEmployeesEP.serverLogicRecoverErrors[F](handle(_) {
 
-      for {
-        allEmployees                  <- repositoryModule.findAllEmployees
-        employeesWithTransportDetails <- allEmployees.traverse { emp =>
-                                           import models.codecs._
-                                           Logger[F].info(s"Finding transport details for ${emp.code.value}") *>
-                                             transportServiceClient
-                                               .sendAndReceive[TransportRequest, TransportResponse](Some(TransportRequest(emp.code)))
-                                               .handleErrorWith { t: Throwable =>
-                                                 Logger[F].warn(t)("Error Received from the server") *>
-                                                   TransportResponse.apply(emp.code).pure[F]
-                                               }
-                                               .map(EmployeeWithTransport.apply(emp, _))
-                                         }
-      } yield employeesWithTransportDetails
+      repositoryModule
+        .findAllEmployees
+        .flatMap(_.traverse { emp =>
+          import models.codecs._
+          Logger[F].info(s"Finding transport details for ${emp.code.value}") *>
+            transportServiceClient
+              .sendAndReceive[TransportRequest, TransportResponse](Some(TransportRequest(emp.code)))
+              .handleErrorWith { t: Throwable =>
+                Logger[F].warn(t)("Error Received from the server") *>
+                  TransportResponse.apply(emp.code).pure[F]
+              }
+              .map(EmployeeWithTransport.apply(emp, _))
+        })
     })
 
   lazy val empByIdEndpoint: ServerEndpointF =
