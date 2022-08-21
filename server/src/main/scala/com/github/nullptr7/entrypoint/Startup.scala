@@ -26,11 +26,11 @@ object Startup extends IOApp.Simple with ApplicationResourceModule {
       res        <- appResources[IO]
       session    <- DatabaseSession[IO].make(res.databaseConfig)
       repo       <- RepositoryModule.make[IO](session)
-      server     <- BlazeServerModuleV2.make[IO](res.serverConfig)
       httpClient <- BlazeClientModule[IO].make(res.clientConfig)
       clients    <- initializeClient[IO](res.clientConfig, httpClient)
       logic      <- new ServiceLogicModule[IO](repo, clients).make
       routes     <- Routes.make[IO](logic)
+      server     <- BlazeServerModuleV2.make[IO](res.serverConfig)
       serve      <- server.serve(routes)
     } yield serve
     app.useForever
