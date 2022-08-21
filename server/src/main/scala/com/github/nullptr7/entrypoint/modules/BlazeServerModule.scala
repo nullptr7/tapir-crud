@@ -11,7 +11,7 @@ import cats.effect.kernel.Async
 
 import configurations.types.ServerConfig
 
-abstract class BlazeServerModuleV2[F[_]: Async](serverConfig: ServerConfig) {
+abstract class BlazeServerModule[F[_]: Async](serverConfig: ServerConfig) {
 
   final def serve(route: HttpApp[F]): Resource[F, Server] =
     BlazeServerBuilder[F]
@@ -21,11 +21,11 @@ abstract class BlazeServerModuleV2[F[_]: Async](serverConfig: ServerConfig) {
 
 }
 
-object BlazeServerModuleV2 {
+object BlazeServerModule {
 
-  def make[F[_]: Async](serverConfig: ServerConfig): Resource[F, BlazeServerModuleV2[F]] =
+  def make[F[_]: Async](serverConfig: ServerConfig): Resource[F, BlazeServerModule[F]] =
     Resource.pure(
-      new BlazeServerModuleV2[F](serverConfig) {}
+      new BlazeServerModule[F](serverConfig) {}
     )
 
 }

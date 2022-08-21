@@ -9,7 +9,7 @@ import cats.effect.kernel.Resource
 import client.module.BlazeClientModule
 import client.{ApiClients, TransportServiceClient}
 import configurations.types.{ClientConfig, TransportApiClientDetails}
-import modules.{ApplicationResourceModule, BlazeServerModuleV2, RepositoryModule, ServiceLogicModule}
+import modules.{ApplicationResourceModule, BlazeServerModule, RepositoryModule, ServiceLogicModule}
 import storage.DatabaseSession
 
 object Startup extends IOApp.Simple with ApplicationResourceModule {
@@ -30,7 +30,7 @@ object Startup extends IOApp.Simple with ApplicationResourceModule {
       clients    <- initializeClient[IO](res.clientConfig, httpClient)
       logic      <- new ServiceLogicModule[IO](repo, clients).make
       routes     <- Routes.make[IO](logic)
-      server     <- BlazeServerModuleV2.make[IO](res.serverConfig)
+      server     <- BlazeServerModule.make[IO](res.serverConfig)
       serve      <- server.serve(routes)
     } yield serve
     app.useForever
